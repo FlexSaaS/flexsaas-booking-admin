@@ -3,7 +3,7 @@ import styled from "styled-components";
 const DayContainer = styled.div`
   display: grid;
   grid-template-columns: 60px 1fr;
-  grid-template-rows: auto repeat(17, minmax(30px, 1fr));
+  grid-template-rows: auto repeat(13, minmax(30px, 1fr));
   height: 100%;
   box-sizing: border-box;
   padding: 10px;
@@ -41,18 +41,12 @@ const TimeSlot = styled.div`
   box-sizing: border-box;
 `;
 
-const formatHour = (hour: number) => {
-  if (hour === 0) return "12 AM";
-  if (hour < 12) return `${hour} AM`;
-  if (hour === 12) return "12 PM";
-  return `${hour - 12} PM`;
-};
 function DayView() {
   const today = new Date();
   const weekday = today.toLocaleDateString(undefined, { weekday: "long" });
   const day = today.getDate();
 
-  const hours = Array.from({ length: 17 }, (_, i) => i + 6);
+  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 
   return (
     <DayContainer>
@@ -68,7 +62,7 @@ function DayView() {
             gridRow: index + 2,
           }}
         >
-          {formatHour(hour)}
+          {`${hour}:00`}
         </TimeLabel>
       ))}
 

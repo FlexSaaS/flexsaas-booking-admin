@@ -43,7 +43,7 @@ export default CalendarApp;
 
 const MainContainer = styled.div`
   flex: 1;
-  background-color: grey;
+  /* background-color: grey; */
   display: flex;
   flex-direction: column;
 `;
