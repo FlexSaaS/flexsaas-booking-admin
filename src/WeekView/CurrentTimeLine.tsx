@@ -23,6 +23,7 @@ const StyledLine = styled.div`
   background-color: ${({ theme }) => theme.primary};
   z-index: 10;
   pointer-events: none;
+  transition: top 0.2s ease;
   left: 0;
   right: 0;
 `;

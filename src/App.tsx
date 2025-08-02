@@ -33,6 +33,15 @@ const Wrapper = styled.div`
 function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
+  const exampleEvents = [
+    {
+      id: "1",
+      title: "Team Meeting",
+      start: new Date("2025-08-02T19:30:00"), // Wednesday
+      end: new Date("2025-08-02T20:00:00"),
+      color: "#e53e3e",
+    },
+  ];
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
@@ -51,6 +60,7 @@ function App() {
         <WeekView
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          events={exampleEvents}
         />
       </Wrapper>
     </ThemeProvider>

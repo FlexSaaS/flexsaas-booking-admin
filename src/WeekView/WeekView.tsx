@@ -5,23 +5,59 @@ import TimeLabels from "./TimeLabels";
 import TimeSlotsGrid from "./TimeSlotsGrid";
 import CurrentTimeLine from "./CurrentTimeLine";
 import styled from "styled-components";
+import EventsLayer from "./EventsLayer";
+
+type Event = {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  color?: string;
+};
 
 type WeekViewProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
+  events?: Event[];
 };
 
-function WeekView({ selectedDate, setSelectedDate }: WeekViewProps) {
+function WeekView({
+  selectedDate,
+  setSelectedDate,
+  events = [],
+}: WeekViewProps) {
   const weekContainerRef = useRef<HTMLDivElement>(null);
   const [currentLinePos, setCurrentLinePos] = useState<{
     top: number;
     col: number;
   } | null>(null);
 
+  const [slotHeight, setSlotHeight] = useState(30);
+
+  useEffect(() => {
+    const firstSlot = weekContainerRef.current?.querySelector(
+      "[data-timeslot]"
+    ) as HTMLElement;
+
+    if (!firstSlot) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        const newHeight = entry.contentRect.height;
+        setSlotHeight(newHeight);
+      }
+    });
+
+    observer.observe(firstSlot);
+
+    return () => observer.disconnect();
+  }, []);
+
   const calculateCurrentLinePos = useCallback(() => {
     if (!weekContainerRef.current) return;
 
     const now = new Date();
+
     const dayOfWeek = selectedDate.getDay();
     const daysFromMonday = (dayOfWeek + 6) % 7;
     const startOfWeek = new Date(selectedDate);
@@ -38,7 +74,6 @@ function WeekView({ selectedDate, setSelectedDate }: WeekViewProps) {
 
     const container = weekContainerRef.current;
     const firstSlot = container.querySelector("[data-timeslot]") as HTMLElement;
-    const slotHeight = firstSlot?.offsetHeight ?? 30;
     const firstSlotTop = firstSlot?.offsetTop ?? 0;
 
     const startHour = 8;
@@ -52,13 +87,13 @@ function WeekView({ selectedDate, setSelectedDate }: WeekViewProps) {
     }
 
     const hoursFromStart = currentHour - startHour + currentMinute / 60;
-    const topPosition = firstSlotTop + hoursFromStart * slotHeight;
+    const topPosition = firstSlotTop + hoursFromStart * slotHeight + 22;
 
     const dayIndex = (now.getDay() + 6) % 7;
     const gridColumn = dayIndex + 2;
 
     setCurrentLinePos({ top: topPosition, col: gridColumn });
-  }, [selectedDate]);
+  }, [selectedDate, slotHeight]);
 
   useEffect(() => {
     calculateCurrentLinePos();
@@ -112,6 +147,16 @@ function WeekView({ selectedDate, setSelectedDate }: WeekViewProps) {
         <DaysHeader days={days} />
         <TimeLabels hours={hours} />
         <TimeSlotsGrid daysLength={days.length} hoursLength={hours.length} />
+
+        <EventsLayer
+          events={events}
+          startOfWeek={startOfWeek}
+          slotHeight={slotHeight}
+          startHour={8}
+          endHour={20}
+          containerRef={weekContainerRef}
+        />
+
         {currentLinePos && (
           <CurrentTimeLine top={currentLinePos.top} col={currentLinePos.col} />
         )}
