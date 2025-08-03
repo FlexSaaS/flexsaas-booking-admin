@@ -1,4 +1,4 @@
-import { useEffect, useState, type RefObject } from "react";
+import React from "react";
 import styled from "styled-components";
 
 type Event = {
@@ -11,109 +11,106 @@ type Event = {
 
 type EventsLayerProps = {
   events: Event[];
+  gridWidth: number;
+  gridHeight: number;
+  daysCount: number;
   startOfWeek: Date;
-  slotHeight: number;
-  startHour: number;
-  endHour: number;
-  containerRef: RefObject<HTMLDivElement | null>;
 };
 
-function EventsLayer({
+const START_MINUTES = 8 * 60; // 8am
+const END_MINUTES = 21 * 60; // 9pm
+
+const EventsLayer: React.FC<EventsLayerProps> = ({
   events,
+  gridWidth,
+  gridHeight,
+  daysCount,
   startOfWeek,
-  slotHeight,
-  startHour,
-  endHour,
-  containerRef,
-}: EventsLayerProps) {
-  const [containerWidth, setContainerWidth] = useState(0);
-  const dayCount = 7;
+}) => {
+  // Helper: calculate vertical position and height
+  const getPositionStyles = (event: Event) => {
+    const startMinutes = event.start.getHours() * 60 + event.start.getMinutes();
+    const endMinutes = event.end.getHours() * 60 + event.end.getMinutes();
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    setContainerWidth(containerRef.current.clientWidth);
+    // Clamp times within visible range
+    const startClamped = Math.max(startMinutes, START_MINUTES);
+    const endClamped = Math.min(endMinutes, END_MINUTES);
 
-    const handleResize = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [containerRef]);
+    if (endClamped <= START_MINUTES || startClamped >= END_MINUTES) {
+      return null; // event outside visible time
+    }
 
-  const dayWidth = (containerWidth - 60) /* time label width */ / dayCount;
+    const topPercent =
+      (startClamped - START_MINUTES) / (END_MINUTES - START_MINUTES);
+    const bottomPercent =
+      (endClamped - START_MINUTES) / (END_MINUTES - START_MINUTES);
+    const top = topPercent * gridHeight;
+    const height = (bottomPercent - topPercent) * gridHeight;
 
-  const dayMs = 24 * 60 * 60 * 1000;
+    // Horizontal position by day column
+    const eventDay = (event.start.getDay() + 6) % 7; // Monday=0
+    const columnWidth = gridWidth / daysCount;
+    const left = eventDay * columnWidth;
+
+    return { top, left, height, width: columnWidth };
+  };
+
+  const isEventInWeek = (eventStart: Date, startOfWeek: Date) => {
+    const start = new Date(startOfWeek);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+
+    const eventDate = new Date(eventStart);
+    eventDate.setHours(0, 0, 0, 0);
+
+    return eventDate >= start && eventDate <= end;
+  };
 
   return (
     <>
-      {events.map((event) => {
-        const eventStart = event.start;
-        const eventEnd = event.end;
+      {events
+        .filter((event) => isEventInWeek(event.start, startOfWeek))
+        .map((event) => {
+          const pos = getPositionStyles(event);
+          if (!pos) return null;
 
-        // Calculate day index (0 = Monday, ... 6 = Sunday)
-        const dayIndex = Math.floor(
-          (eventStart.getTime() - startOfWeek.getTime()) / dayMs
-        );
-        if (dayIndex < 0 || dayIndex >= dayCount) return null; // Out of week range
-
-        // Calculate top and height (in px)
-        const startHourDecimal =
-          eventStart.getHours() + eventStart.getMinutes() / 60;
-        const endHourDecimal = eventEnd.getHours() + eventEnd.getMinutes() / 60;
-
-        // Ignore events outside display hours
-        if (endHourDecimal <= startHour || startHourDecimal >= endHour)
-          return null;
-
-        // Clamp times to visible range
-        const clampedStart = Math.max(startHourDecimal, startHour);
-        const clampedEnd = Math.min(endHourDecimal, endHour);
-
-        const top = (clampedStart - startHour) * slotHeight + 75;
-
-        const height = (clampedEnd - clampedStart) * slotHeight;
-
-        // Calculate horizontal position
-        const left = 48 + dayIndex * dayWidth; // 60px is time label col width
-
-        return (
-          <EventBlock
-            key={event.id}
-            style={{
-              top,
-              height,
-              left,
-              width: dayWidth - 4, // some gap between days
-              backgroundColor: event.color || "#3182ce",
-            }}
-            title={`${
-              event.title
-            }\n${eventStart.toLocaleTimeString()} - ${eventEnd.toLocaleTimeString()}`}
-          >
-            {event.title}
-          </EventBlock>
-        );
-      })}
+          return (
+            <EventItem
+              key={event.id}
+              style={{
+                top: pos.top,
+                left: pos.left,
+                height: pos.height,
+                width: pos.width,
+                backgroundColor: event.color || "#3498db",
+              }}
+              title={`${
+                event.title
+              }\n${event.start.toLocaleTimeString()} - ${event.end.toLocaleTimeString()}`}
+            >
+              {event.title}
+            </EventItem>
+          );
+        })}
     </>
   );
-}
+};
 
-const EventBlock = styled.div`
+export default EventsLayer;
+
+const EventItem = styled.div`
   position: absolute;
-  padding: 4px 6px;
-  color: white;
-  font-size: 12px;
+  padding: 2px 5px;
+  box-sizing: border-box;
   border-radius: 4px;
+  color: white;
+  font-size: 0.75rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   cursor: pointer;
-  box-sizing: border-box;
   user-select: none;
-  z-index: 10;
-  transition: top 0.2s ease, height 0.2s ease;
 `;
-
-export default EventsLayer;

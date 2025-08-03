@@ -30,18 +30,55 @@ const Wrapper = styled.div`
   margin: 0 auto;
 `;
 
+export type EventType = {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+};
+
+type AvailabilityType = {
+  id: string;
+  start: Date;
+  end: Date;
+};
+
 function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [darkMode, setDarkMode] = useState(false);
-  const exampleEvents = [
+
+  const [events, setEvents] = useState<EventType[]>([]);
+
+  const availability: AvailabilityType[] = [
     {
-      id: "1",
-      title: "Team Meeting",
-      start: new Date("2025-08-02T19:30:00"), // Wednesday
-      end: new Date("2025-08-02T20:00:00"),
-      color: "#e53e3e",
+      id: "avail-1",
+      start: new Date("2025-08-03T10:00:00"),
+      end: new Date("2025-08-03T17:00:00"),
     },
   ];
+
+  function addEvent(newEvent: EventType): boolean {
+    // Check for overlap with existing events
+    const overlaps = events.some(
+      (event) => newEvent.start < event.end && newEvent.end > event.start
+    );
+    if (overlaps) {
+      alert("That time slot overlaps with an existing event.");
+      return false;
+    }
+
+    // Check if newEvent is inside availability
+    const isAvailable = availability.some(
+      (avail) => newEvent.start >= avail.start && newEvent.end <= avail.end
+    );
+    if (!isAvailable) {
+      alert("Selected time is outside availability.");
+      return false;
+    }
+
+    setEvents([...events, newEvent]);
+    return true;
+  }
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
@@ -56,11 +93,14 @@ function App() {
         <Sidebar
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          availability={availability}
+          addEvent={addEvent}
         />
         <WeekView
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
-          events={exampleEvents}
+          events={events}
+          availability={availability}
         />
       </Wrapper>
     </ThemeProvider>

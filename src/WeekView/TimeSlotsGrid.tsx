@@ -17,8 +17,8 @@ const TimeSlotsGrid = ({ daysLength, hoursLength }: Props) => (
           isLastRow={rowIdx === hoursLength - 1}
           isLastCol={colIdx === daysLength - 1}
           style={{
-            gridColumn: colIdx + 2,
-            gridRow: rowIdx + 3,
+            gridColumn: colIdx + 1,
+            gridRow: rowIdx + 1,
           }}
         />
       ))

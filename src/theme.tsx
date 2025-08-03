@@ -10,11 +10,11 @@ export const lightTheme: DefaultTheme = {
 };
 
 export const darkTheme: DefaultTheme = {
-  background: "#1b1b1d",
+  background: "#1f1f22",
   text: "#e9e9e9",
   primary: "#a8c7fa",
   secondary: "#37393b",
-  border: "#505257",
+  border: "#858891",
 };
 
 declare module "styled-components" {

@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import WeekHeader from "./WeekHeader";
 import DaysHeader from "./DaysHeader";
 import TimeLabels from "./TimeLabels";
 import TimeSlotsGrid from "./TimeSlotsGrid";
-import CurrentTimeLine from "./CurrentTimeLine";
 import styled from "styled-components";
+import { useRef, useEffect, useState, useMemo } from "react";
+import CurrentTimeLine from "./CurrentTimeLine";
 import EventsLayer from "./EventsLayer";
+import AvailabilityLayer from "./AvailabilityLayer";
 
 type Event = {
   id: string;
@@ -15,157 +16,175 @@ type Event = {
   color?: string;
 };
 
+type Availability = {
+  id: string;
+  start: Date;
+  end: Date;
+};
+
 type WeekViewProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
-  events?: Event[];
+  events: Event[];
+  availability?: Availability[];
 };
 
-function WeekView({
-  selectedDate,
-  setSelectedDate,
-  events = [],
-}: WeekViewProps) {
-  const weekContainerRef = useRef<HTMLDivElement>(null);
-  const [currentLinePos, setCurrentLinePos] = useState<{
-    top: number;
-    col: number;
-  } | null>(null);
+const HOURS_START = 8;
+const HOURS_COUNT = 13;
+const DAYS_IN_WEEK = 7;
+const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
-  const [slotHeight, setSlotHeight] = useState(30);
-
-  useEffect(() => {
-    const firstSlot = weekContainerRef.current?.querySelector(
-      "[data-timeslot]"
-    ) as HTMLElement;
-
-    if (!firstSlot) return;
-
-    const observer = new ResizeObserver((entries) => {
-      for (let entry of entries) {
-        const newHeight = entry.contentRect.height;
-        setSlotHeight(newHeight);
-      }
-    });
-
-    observer.observe(firstSlot);
-
-    return () => observer.disconnect();
-  }, []);
-
-  const calculateCurrentLinePos = useCallback(() => {
-    if (!weekContainerRef.current) return;
-
-    const now = new Date();
-
-    const dayOfWeek = selectedDate.getDay();
-    const daysFromMonday = (dayOfWeek + 6) % 7;
-    const startOfWeek = new Date(selectedDate);
-    startOfWeek.setDate(selectedDate.getDate() - daysFromMonday);
-
-    const isCurrentWeek =
-      now >= startOfWeek &&
-      now < new Date(startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-    if (!isCurrentWeek) {
-      setCurrentLinePos(null);
-      return;
-    }
-
-    const container = weekContainerRef.current;
-    const firstSlot = container.querySelector("[data-timeslot]") as HTMLElement;
-    const firstSlotTop = firstSlot?.offsetTop ?? 0;
-
-    const startHour = 8;
-    const endHour = 20;
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-
-    if (currentHour < startHour || currentHour > endHour) {
-      setCurrentLinePos(null);
-      return;
-    }
-
-    const hoursFromStart = currentHour - startHour + currentMinute / 60;
-    const topPosition = firstSlotTop + hoursFromStart * slotHeight + 22;
-
-    const dayIndex = (now.getDay() + 6) % 7;
-    const gridColumn = dayIndex + 2;
-
-    setCurrentLinePos({ top: topPosition, col: gridColumn });
-  }, [selectedDate, slotHeight]);
-
-  useEffect(() => {
-    calculateCurrentLinePos();
-  }, [calculateCurrentLinePos]);
-
-  useEffect(() => {
-    window.addEventListener("resize", calculateCurrentLinePos);
-    return () => {
-      window.removeEventListener("resize", calculateCurrentLinePos);
-    };
-  }, [calculateCurrentLinePos]);
-
-  const dayOfWeek = selectedDate.getDay();
+function getStartOfWeek(date: Date) {
+  const dayOfWeek = date.getDay();
   const daysFromMonday = (dayOfWeek + 6) % 7;
-  const startOfWeek = new Date(selectedDate);
-  startOfWeek.setDate(selectedDate.getDate() - daysFromMonday);
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - daysFromMonday);
+  return start;
+}
 
-  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
-
-  const days = Array.from({ length: 7 }, (_, i) => {
+function generateWeekDays(startOfWeek: Date) {
+  return Array.from({ length: DAYS_IN_WEEK }, (_, i) => {
     const date = new Date(startOfWeek);
     date.setDate(startOfWeek.getDate() + i);
     return {
       label: date.toLocaleDateString(undefined, { weekday: "short" }),
       number: date.getDate(),
       fullDate: date.toLocaleDateString(),
+      date,
     };
   });
+}
 
-  const formatWeekRange = () => {
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
-    const options: Intl.DateTimeFormatOptions = {
-      month: "short",
-      day: "numeric",
-    };
-    return `${startOfWeek.toLocaleDateString(
-      undefined,
-      options
-    )} – ${endOfWeek.toLocaleDateString(undefined, options)}`;
+function formatWeekRange(startOfWeek: Date) {
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + DAYS_IN_WEEK - 1);
+  const options: Intl.DateTimeFormatOptions = {
+    month: "short",
+    day: "numeric",
   };
+  return `${startOfWeek.toLocaleDateString(
+    undefined,
+    options
+  )} – ${endOfWeek.toLocaleDateString(undefined, options)}`;
+}
+
+function mapAvailabilityToDays(
+  availability: Availability[],
+  startOfWeek: Date
+): (Availability | null)[] {
+  const availabilityByDay = Array(DAYS_IN_WEEK).fill(
+    null
+  ) as (Availability | null)[];
+
+  const startOfWeekMidnight = new Date(startOfWeek);
+  startOfWeekMidnight.setHours(0, 0, 0, 0);
+
+  availability.forEach(({ start, end, id }) => {
+    const startDateMidnight = new Date(start);
+    startDateMidnight.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor(
+      (startDateMidnight.getTime() - startOfWeekMidnight.getTime()) / DAY_IN_MS
+    );
+    if (diffDays >= 0 && diffDays < DAYS_IN_WEEK) {
+      availabilityByDay[diffDays] = { id, start, end };
+    }
+  });
+
+  return availabilityByDay;
+}
+
+function WeekView({
+  selectedDate,
+  setSelectedDate,
+  events,
+  availability = [],
+}: WeekViewProps) {
+  const startOfWeek = useMemo(
+    () => getStartOfWeek(selectedDate),
+    [selectedDate]
+  );
+  const days = useMemo(() => generateWeekDays(startOfWeek), [startOfWeek]);
+  const hours = useMemo(
+    () => Array.from({ length: HOURS_COUNT }, (_, i) => i + HOURS_START),
+    []
+  );
+
+  const availabilityByDayIndex = useMemo(
+    () => mapAvailabilityToDays(availability, startOfWeek),
+    [availability, startOfWeek]
+  );
+
+  const gridWrapperRef = useRef<HTMLDivElement>(null);
+  const [gridHeight, setGridHeight] = useState(0);
+  const [gridWidth, setGridWidth] = useState(0);
+
+  useEffect(() => {
+    if (!gridWrapperRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setGridHeight(entry.contentRect.height);
+        setGridWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(gridWrapperRef.current);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <Container>
       <WeekHeader
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
-        weekRange={formatWeekRange()}
+        weekRange={formatWeekRange(startOfWeek)}
       />
-      <WeekContainer ref={weekContainerRef}>
+      <WeekContainer>
         <DaysHeader days={days} />
         <TimeLabels hours={hours} />
-        <TimeSlotsGrid daysLength={days.length} hoursLength={hours.length} />
-
-        <EventsLayer
-          events={events}
-          startOfWeek={startOfWeek}
-          slotHeight={slotHeight}
-          startHour={8}
-          endHour={20}
-          containerRef={weekContainerRef}
-        />
-
-        {currentLinePos && (
-          <CurrentTimeLine top={currentLinePos.top} col={currentLinePos.col} />
-        )}
+        <GridWrapper
+          ref={gridWrapperRef}
+          style={{ gridColumn: "2 / span 7", gridRow: "3 / span 13" }}
+        >
+          <CurrentTimeLine
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            daysCount={days.length}
+            startOfWeek={startOfWeek}
+          />
+          <AvailabilityLayer
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            daysCount={days.length}
+            availability={availabilityByDayIndex}
+          />
+          <EventsLayer
+            events={events}
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
+            daysCount={days.length}
+            startOfWeek={startOfWeek}
+          />
+          <TimeSlotsGrid daysLength={days.length} hoursLength={hours.length} />
+        </GridWrapper>
       </WeekContainer>
     </Container>
   );
 }
 
 export default WeekView;
+
+const GridWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(13, 1fr);
+  box-sizing: border-box;
+  position: relative;
+`;
 
 const WeekContainer = styled.div`
   position: relative;
