@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import CalendarSmall from "./CalendarSmall";
+import Appointment from "./Appointment";
 
 type SidebarProps = {
   selectedDate: Date;
@@ -14,6 +15,7 @@ type SidebarProps = {
     start: Date;
     end: Date;
   }) => boolean;
+  addAvailability: (avail: { id: string; start: Date; end: Date }) => void;
 };
 
 function Sidebar({
@@ -21,11 +23,37 @@ function Sidebar({
   setSelectedDate,
   availability,
   addEvent,
+  addAvailability, // <-- ADD THIS
 }: SidebarProps) {
   const [showModal, setShowModal] = useState(false);
   const [timeSlots, setTimeSlots] = useState<Date[]>([]);
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [title, setTitle] = useState("");
+  const [showAvailModal, setShowAvailModal] = useState(false);
+  const [availStartTime, setAvailStartTime] = useState("10:00");
+  const [availEndTime, setAvailEndTime] = useState("18:00");
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const daysOfWeek = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
+
+  const [showAppointment, setShowAppointment] = useState(false);
+
+  function getNextDate(dayName: string, baseDate: Date): Date {
+    const dayIndex = daysOfWeek.indexOf(dayName);
+    const baseDay = baseDate.getDay(); // Sunday = 0
+    const targetDay = (dayIndex + 1) % 7; // Make Monday = 1
+    const diff = (targetDay + 7 - baseDay) % 7;
+    const result = new Date(baseDate);
+    result.setDate(result.getDate() + diff);
+    return result;
+  }
 
   // Generate 30 min slots for selectedDate within availability
   useEffect(() => {
@@ -72,12 +100,12 @@ function Sidebar({
       return;
     }
 
-    // Create event object with 30 min duration
+    // Create event object with 25 min duration
     const newEvent = {
       id: String(Date.now()),
       title,
       start: selectedTime,
-      end: new Date(selectedTime.getTime() + 30 * 60 * 1000),
+      end: new Date(selectedTime.getTime() + 25 * 60 * 1000),
     };
 
     const success = addEvent(newEvent);
@@ -100,42 +128,149 @@ function Sidebar({
         />
 
         <Button onClick={openModal}>Create event</Button>
+        <Button onClick={() => setShowAvailModal(true)}>
+          Set Availability
+        </Button>
 
-        {showModal && (
+        <Button onClick={() => setShowAppointment(true)}>Open Window</Button>
+        {showAppointment && (
+          <Appointment
+            onClose={() => setShowAppointment(false)}
+            availableTimes={[
+              { date: new Date(2025, 7, 9), times: ["9:30am", "10:00am"] },
+              {
+                date: new Date(2025, 7, 10),
+                times: ["1:00pm", "2:00pm", "3:00pm"],
+              },
+            ]}
+          />
+        )}
+
+        {showAvailModal && (
           <ModalOverlay>
             <ModalContent>
-              <h3>Create event for {selectedDate.toDateString()}</h3>
+              <h3>Set Weekly Availability</h3>
+              <label>Choose days:</label>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginBottom: "1rem",
+                }}
+              >
+                {daysOfWeek.map((day) => (
+                  <label
+                    key={day}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedDays.includes(day)}
+                      onChange={(e) => {
+                        setSelectedDays((prev) =>
+                          e.target.checked
+                            ? [...prev, day]
+                            : prev.filter((d) => d !== day)
+                        );
+                      }}
+                    />
+                    {day}
+                  </label>
+                ))}
+              </div>
+
               <label>
-                Event title:
+                Start time:
                 <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  autoFocus
+                  type="time"
+                  step="1800"
+                  min="08:00"
+                  max="21:00"
+                  value={availStartTime}
+                  onChange={(e) => setAvailStartTime(e.target.value)}
                 />
               </label>
 
               <label>
-                Select time slot:
-                <TimeSlotSelect
-                  value={selectedTime ? selectedTime.toISOString() : ""}
-                  onChange={(e) => setSelectedTime(new Date(e.target.value))}
-                >
-                  <option value="">-- Select a time --</option>
-                  {timeSlots.map((slot) => (
-                    <option key={slot.toISOString()} value={slot.toISOString()}>
-                      {slot.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </option>
-                  ))}
-                </TimeSlotSelect>
+                End time:
+                <input
+                  type="time"
+                  step="1800"
+                  min="08:00"
+                  max="21:00"
+                  value={availEndTime}
+                  onChange={(e) => setAvailEndTime(e.target.value)}
+                />
               </label>
 
               <ModalButtons>
-                <button onClick={() => setShowModal(false)}>Cancel</button>
-                <button onClick={confirmEvent}>Add Event</button>
+                <button onClick={() => setShowAvailModal(false)}>Cancel</button>
+                <button
+                  onClick={() => {
+                    if (
+                      !availStartTime ||
+                      !availEndTime ||
+                      selectedDays.length === 0
+                    ) {
+                      alert("Please select days and times.");
+                      return;
+                    }
+
+                    const [sh, sm] = availStartTime.split(":").map(Number);
+                    const [eh, em] = availEndTime.split(":").map(Number);
+
+                    if (sh < 8 || sh > 21 || eh < 8 || eh > 21) {
+                      alert("Times must be between 08:00 and 21:00");
+                      return;
+                    }
+
+                    const currentYear = selectedDate.getFullYear();
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const lastDayOfYear = new Date(currentYear, 11, 31); // Dec 31
+
+                    const newAvailabilities: {
+                      id: string;
+                      start: Date;
+                      end: Date;
+                    }[] = [];
+
+                    for (
+                      let date = new Date(today);
+                      date <= lastDayOfYear;
+                      date.setDate(date.getDate() + 1)
+                    ) {
+                      const dayName = daysOfWeek[(date.getDay() + 6) % 7]; // Convert Sun=0 to Sun=6
+                      if (selectedDays.includes(dayName)) {
+                        const start = new Date(date);
+                        const end = new Date(date);
+                        start.setHours(sh, sm, 0, 0);
+                        end.setHours(eh, em, 0, 0);
+
+                        newAvailabilities.push({
+                          id: `avail-${start.toISOString()}`,
+                          start: new Date(start),
+                          end: new Date(end),
+                        });
+                      }
+                    }
+
+                    newAvailabilities.forEach(addAvailability);
+
+                    setShowAvailModal(false);
+                    setAvailStartTime("10:00");
+                    setAvailEndTime("18:00");
+                    setSelectedDays([]);
+                  }}
+                >
+                  Save
+                </button>
               </ModalButtons>
             </ModalContent>
           </ModalOverlay>

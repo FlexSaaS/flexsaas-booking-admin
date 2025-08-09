@@ -8,7 +8,7 @@ import WeekView from "./WeekView/WeekView";
 const GlobalStyle = createGlobalStyle`
   * {
     margin: 0; padding: 0; box-sizing: border-box;
-    font-family: sans-serif;
+    font-family: 'Comfortaa', sans-serif;
   }
   html, body, #root {
     height: 100%;
@@ -49,13 +49,12 @@ function App() {
 
   const [events, setEvents] = useState<EventType[]>([]);
 
-  const availability: AvailabilityType[] = [
-    {
-      id: "avail-1",
-      start: new Date("2025-08-03T10:00:00"),
-      end: new Date("2025-08-03T17:00:00"),
-    },
-  ];
+  const [availability, setAvailability] = useState<AvailabilityType[]>([]);
+
+  function addAvailability(newAvail: AvailabilityType) {
+    // Optional: Add validation to prevent overlapping slots
+    setAvailability((prev) => [...prev, newAvail]);
+  }
 
   function addEvent(newEvent: EventType): boolean {
     // Check for overlap with existing events
@@ -95,6 +94,7 @@ function App() {
           setSelectedDate={setSelectedDate}
           availability={availability}
           addEvent={addEvent}
+          addAvailability={addAvailability}
         />
         <WeekView
           selectedDate={selectedDate}
