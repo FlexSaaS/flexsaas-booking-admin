@@ -114,6 +114,10 @@ function Sidebar({
     }
   }
 
+  console.log(showModal);
+  console.log(getNextDate);
+  console.log(confirmEvent);
+
   return (
     <SidebarContainer>
       <div>
@@ -372,9 +376,9 @@ const ModalContent = styled.div`
   }
 `;
 
-const TimeSlotSelect = styled.select`
-  cursor: pointer;
-`;
+// const TimeSlotSelect = styled.select`
+//   cursor: pointer;
+// `;
 
 const ModalButtons = styled.div`
   display: flex;
