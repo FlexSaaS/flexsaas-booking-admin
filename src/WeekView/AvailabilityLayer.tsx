@@ -1,15 +1,13 @@
 import React from "react";
 import styled from "styled-components";
-
-type AvailabilityMap = {
-  [dayIndex: number]: { start: Date; end: Date } | null;
-};
+import type { AvailabilityType } from "../types";
 
 type AvailabilityLayerProps = {
   gridWidth: number;
   gridHeight: number;
   daysCount: number;
-  availability: AvailabilityMap;
+  availability: AvailabilityType[];
+  startOfWeek: Date;
 };
 
 const START_MINUTES = 8 * 60;
@@ -22,14 +20,38 @@ const AvailabilityLayer: React.FC<AvailabilityLayerProps> = ({
   gridHeight,
   daysCount,
   availability,
+  startOfWeek,
 }) => {
   const columnWidth = gridWidth / daysCount;
   const totalMinutes = END_MINUTES - START_MINUTES;
 
+  const availabilityByDay = new Map<number, { start: Date; end: Date }>();
+
+  availability.forEach((entry) => {
+    if (entry.times.length > 0) {
+      const firstMinutes = entry.times[0];
+      const lastMinutes = entry.times[entry.times.length - 1];
+
+      const start = new Date(entry.date);
+      start.setHours(Math.floor(firstMinutes / 60), firstMinutes % 60, 0, 0);
+
+      const end = new Date(entry.date);
+      end.setHours(Math.floor(lastMinutes / 60), lastMinutes % 60, 0, 0);
+
+      const dayIndex = Math.floor(
+        (entry.date.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      if (dayIndex >= 0 && dayIndex < daysCount) {
+        availabilityByDay.set(dayIndex, { start, end });
+      }
+    }
+  });
+
   return (
     <>
       {Array.from({ length: daysCount }, (_, dayIndex) => {
-        const slot = availability[dayIndex];
+        const slot = availabilityByDay.get(dayIndex);
         const overlays = [];
 
         if (!slot) {

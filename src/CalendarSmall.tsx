@@ -105,7 +105,6 @@ function CalendarSmall({ selectedDate, onSelectDate }: CalendarProps) {
 export default CalendarSmall;
 
 const CalendarWrapper = styled.div`
-  font-family: "Roboto", sans-serif;
   border-radius: 8px;
   padding: 0.75rem;
   background-color: ${({ theme }) => theme.background};

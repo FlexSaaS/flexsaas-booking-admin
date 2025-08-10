@@ -1,16 +1,9 @@
 import React from "react";
 import styled from "styled-components";
-
-type Event = {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  color?: string;
-};
+import type { EventType } from "../types";
 
 type EventsLayerProps = {
-  events: Event[];
+  events: EventType[];
   gridWidth: number;
   gridHeight: number;
   daysCount: number;
@@ -27,16 +20,25 @@ const EventsLayer: React.FC<EventsLayerProps> = ({
   daysCount,
   startOfWeek,
 }) => {
+  console.log("Events passed:", events);
+  console.log("Start of week:", startOfWeek.toDateString());
+
   // Helper: calculate vertical position and height
-  const getPositionStyles = (event: Event) => {
+  const getPositionStyles = (event: EventType) => {
     const startMinutes = event.start.getHours() * 60 + event.start.getMinutes();
     const endMinutes = event.end.getHours() * 60 + event.end.getMinutes();
+
+    console.log(`Calculating position for event ${event.id}:`);
+    console.log(`  startMinutes: ${startMinutes}, endMinutes: ${endMinutes}`);
 
     // Clamp times within visible range
     const startClamped = Math.max(startMinutes, START_MINUTES);
     const endClamped = Math.min(endMinutes, END_MINUTES);
 
+    console.log(`  startClamped: ${startClamped}, endClamped: ${endClamped}`);
+
     if (endClamped <= START_MINUTES || startClamped >= END_MINUTES) {
+      console.log(`  Event ${event.id} is outside visible time range.`);
       return null; // event outside visible time
     }
 
@@ -52,6 +54,10 @@ const EventsLayer: React.FC<EventsLayerProps> = ({
     const columnWidth = gridWidth / daysCount;
     const left = eventDay * columnWidth;
 
+    console.log(
+      `  Position - top: ${top}px, left: ${left}px, height: ${height}px, width: ${columnWidth}px`
+    );
+
     return { top, left, height, width: columnWidth };
   };
 
@@ -66,7 +72,25 @@ const EventsLayer: React.FC<EventsLayerProps> = ({
     const eventDate = new Date(eventStart);
     eventDate.setHours(0, 0, 0, 0);
 
-    return eventDate >= start && eventDate <= end;
+    const inWeek = eventDate >= start && eventDate <= end;
+
+    console.log(
+      `Checking if event on ${eventDate.toDateString()} is in week range ${start.toDateString()} - ${end.toDateString()}: ${inWeek}`
+    );
+
+    return inWeek;
+  };
+
+  const getRandomColor = () => {
+    const colors = [
+      "#3498db", // blue
+      "#e74c3c", // red
+      "#2ecc71", // green
+      "#f1c40f", // yellow
+      "#9b59b6", // purple
+      "#e67e22", // orange
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
   };
 
   return (
@@ -75,7 +99,10 @@ const EventsLayer: React.FC<EventsLayerProps> = ({
         .filter((event) => isEventInWeek(event.start, startOfWeek))
         .map((event) => {
           const pos = getPositionStyles(event);
-          if (!pos) return null;
+          if (!pos) {
+            console.log(`Skipping event ${event.id} due to no position`);
+            return null;
+          }
 
           return (
             <EventItem
@@ -85,7 +112,7 @@ const EventsLayer: React.FC<EventsLayerProps> = ({
                 left: pos.left,
                 height: pos.height,
                 width: pos.width,
-                backgroundColor: event.color || "#3498db",
+                backgroundColor: getRandomColor(),
               }}
               title={`${
                 event.title

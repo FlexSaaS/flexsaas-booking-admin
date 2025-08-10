@@ -7,32 +7,18 @@ import { useRef, useEffect, useState, useMemo } from "react";
 import CurrentTimeLine from "./CurrentTimeLine";
 import EventsLayer from "./EventsLayer";
 import AvailabilityLayer from "./AvailabilityLayer";
-
-type Event = {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  color?: string;
-};
-
-type Availability = {
-  id: string;
-  start: Date;
-  end: Date;
-};
+import type { AvailabilityType, EventType } from "../types";
 
 type WeekViewProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
-  events: Event[];
-  availability?: Availability[];
+  events: EventType[];
+  availability: AvailabilityType[];
 };
 
 const HOURS_START = 8;
 const HOURS_COUNT = 13;
 const DAYS_IN_WEEK = 7;
-const DAY_IN_MS = 1000 * 60 * 60 * 24;
 
 function getStartOfWeek(date: Date) {
   const dayOfWeek = date.getDay();
@@ -69,36 +55,11 @@ function formatWeekRange(startOfWeek: Date) {
   )} – ${endOfWeek.toLocaleDateString(undefined, options)}`;
 }
 
-function mapAvailabilityToDays(
-  availability: Availability[],
-  startOfWeek: Date
-): (Availability | null)[] {
-  const availabilityByDay = Array(DAYS_IN_WEEK).fill(
-    null
-  ) as (Availability | null)[];
-
-  const startOfWeekMidnight = new Date(startOfWeek);
-  startOfWeekMidnight.setHours(0, 0, 0, 0);
-
-  availability.forEach(({ start, end, id }) => {
-    const startDateMidnight = new Date(start);
-    startDateMidnight.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor(
-      (startDateMidnight.getTime() - startOfWeekMidnight.getTime()) / DAY_IN_MS
-    );
-    if (diffDays >= 0 && diffDays < DAYS_IN_WEEK) {
-      availabilityByDay[diffDays] = { id, start, end };
-    }
-  });
-
-  return availabilityByDay;
-}
-
 function WeekView({
   selectedDate,
   setSelectedDate,
   events,
-  availability = [],
+  availability,
 }: WeekViewProps) {
   const startOfWeek = useMemo(
     () => getStartOfWeek(selectedDate),
@@ -108,11 +69,6 @@ function WeekView({
   const hours = useMemo(
     () => Array.from({ length: HOURS_COUNT }, (_, i) => i + HOURS_START),
     []
-  );
-
-  const availabilityByDayIndex = useMemo(
-    () => mapAvailabilityToDays(availability, startOfWeek),
-    [availability, startOfWeek]
   );
 
   const gridWrapperRef = useRef<HTMLDivElement>(null);
@@ -158,7 +114,8 @@ function WeekView({
             gridWidth={gridWidth}
             gridHeight={gridHeight}
             daysCount={days.length}
-            availability={availabilityByDayIndex}
+            availability={availability}
+            startOfWeek={startOfWeek} // pass here
           />
           <EventsLayer
             events={events}

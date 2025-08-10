@@ -49,7 +49,7 @@ const NavButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background-color: ${({ theme }) => theme.background};
+    background-color: ${({ theme }) => theme.text};
   }
 `;
 
