@@ -7,8 +7,9 @@ import {
   updateDoc,
   deleteDoc,
 } from "firebase/firestore";
-import emailjs from "emailjs-com";
 import styled from "styled-components";
+import type { IEmailService } from "../types";
+import { EmailJsService } from "../services/EmailJSService";
 
 type PendingUser = {
   id: string; // UID
@@ -16,6 +17,9 @@ type PendingUser = {
   approved: boolean;
   requestedAt: any;
 };
+
+// In future create a provider and surround the entire App.
+const emailService: IEmailService = new EmailJsService();
 
 function AdminDashboard() {
   const [users, setUsers] = useState<PendingUser[]>([]);
@@ -45,18 +49,7 @@ function AdminDashboard() {
     try {
       const userRef = doc(db, "users", user.id);
       await updateDoc(userRef, { approved: true });
-
-      await emailjs.send(
-        "service_g2fmkcp",
-        "template_h7ria5l",
-        {
-          to_email: user.email,
-          subject: "Your account has been approved",
-          message: "You can now log in with your email and password.",
-        },
-        "s_7egKYGY7tVPPmMy"
-      );
-
+      await emailService.sendApprovalEmail(user.email);
       fetchUsers();
     } catch (err) {
       console.error("Failed to approve user:", err);
@@ -67,18 +60,7 @@ function AdminDashboard() {
     try {
       const userRef = doc(db, "users", user.id);
       await deleteDoc(userRef);
-
-      await emailjs.send(
-        "service_g2fmkcp",
-        "template_h7ria5l",
-        {
-          to_email: user.email,
-          subject: "Your account registration was rejected",
-          message: "Your registration request was not approved by the admin.",
-        },
-        "s_7egKYGY7tVPPmMy"
-      );
-
+      await emailService.sendRejectionEmail(user.email);
       fetchUsers();
     } catch (err) {
       console.error("Failed to reject user:", err);
@@ -120,6 +102,7 @@ function AdminDashboard() {
 }
 
 export default AdminDashboard;
+
 
 // Styled components
 const Container = styled.div`

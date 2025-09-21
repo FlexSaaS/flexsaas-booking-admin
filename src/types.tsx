@@ -52,3 +52,11 @@ export interface DataAccess {
   ): Promise<void>;
   getAvailability(userId: string): Promise<AvailabilityType[]>;
 }
+
+// Email service interface
+export interface IEmailService {
+  sendApprovalEmail(to: string): Promise<void>;
+  sendRejectionEmail(to: string): Promise<void>;
+  sendRegistrationPendingEmail(to: string): Promise<void>;
+  notifyAdminOfRegistration(userEmail: string): Promise<void>;
+}

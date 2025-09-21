@@ -5,8 +5,12 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import emailjs from "emailjs-com";
 import styled from "styled-components";
+import type { IEmailService } from "../types";
+import { EmailJsService } from "../services/EmailJSService";
+
+// In future create a provider and surround the entire App.
+const emailService: IEmailService = new EmailJsService();
 
 function AuthPage() {
   const [email, setEmail] = useState("");
@@ -32,27 +36,8 @@ function AuthPage() {
           requestedAt: serverTimestamp(),
         });
 
-        await emailjs.send(
-          "service_g2fmkcp",
-          "template_h7ria5l",
-          {
-            to_email: email,
-            subject: "Registration Pending",
-            message: "Your registration request is pending admin approval.",
-          },
-          "s_7egKYGY7tVPPmMy"
-        );
-
-        await emailjs.send(
-          "service_g2fmkcp",
-          "template_h7ria5l",
-          {
-            to_email: "flexsaas.team@gmail.com",
-            subject: "New registration request",
-            message: `New registration request: ${email}`,
-          },
-          "s_7egKYGY7tVPPmMy"
-        );
+        await emailService.sendRegistrationPendingEmail(email);
+        await emailService.notifyAdminOfRegistration(email);
 
         setMessage("✅ Registration submitted. Pending admin approval.");
         setIsRegister(false);
@@ -114,6 +99,7 @@ function AuthPage() {
 }
 
 export default AuthPage;
+
 
 // Styled components
 const Container = styled.div`
