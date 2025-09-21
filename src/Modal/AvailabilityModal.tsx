@@ -165,11 +165,11 @@ const YearSelector = styled.select`
   padding: 6px 8px;
   font-size: 1rem;
   margin-bottom: 24px;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid ${({ theme }) => theme.border};
   border-radius: 6px;
 
   &:focus {
-    border-color: #5a4de1;
+    border-color: ${({ theme }) => theme.primary};
     outline: none;
   }
 `;
@@ -185,22 +185,21 @@ const Overlay = styled.div`
 `;
 
 const Modal = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.background};
   border-radius: 10px;
   padding: 28px 36px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 `;
 
 const Title = styled.h2`
   margin: 0 0 12px 0;
   font-weight: 700;
   font-size: 1.75rem;
-  color: #4f64ed;
+  color: ${({ theme }) => theme.primary};
 `;
 
 const Subtitle = styled.p`
   margin: 0 0 24px 0;
-  color: #555;
+  color: ${({ theme }) => theme.text};
   font-size: 1rem;
   line-height: 1.3;
 `;
@@ -213,12 +212,14 @@ const DayRow = styled.div`
   flex-wrap: nowrap;
   min-height: 36px;
 `;
+
 const DayName = styled.div`
   flex: 0 0 100px;
   font-weight: 600;
   font-size: 1rem;
-  color: #222;
+  color: ${({ theme }) => theme.text};
 `;
+
 const ToggleLabel = styled.label`
   position: relative;
   display: inline-block;
@@ -236,7 +237,7 @@ const ToggleInput = styled.input.attrs({ type: "checkbox" })`
   height: 0;
 
   &:checked + span {
-    background-color: #5a4de1;
+    background-color: ${({ theme }) => theme.primary};
   }
   &:checked + span:before {
     transform: translateX(20px);
@@ -250,7 +251,7 @@ const Slider = styled.span`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: ${({ theme }) => theme.border};
   border-radius: 24px;
   transition: 0.4s;
 
@@ -261,7 +262,7 @@ const Slider = styled.span`
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: ${({ theme }) => theme.background};
     border-radius: 50%;
     transition: 0.4s;
   }
@@ -269,7 +270,7 @@ const Slider = styled.span`
 
 const ToggleText = styled.span`
   font-size: 0.95rem;
-  color: #444;
+  color: ${({ theme }) => theme.text};
   user-select: none;
   min-width: 45px;
   flex-shrink: 0;
@@ -282,13 +283,13 @@ const TimeSelect = styled.select`
   padding: 6px 8px;
   font-size: 0.9rem;
   margin: 0 8px;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid ${({ theme }) => theme.border};
   border-radius: 6px;
   transition: border-color 0.2s;
   flex-shrink: 0;
 
   &:focus {
-    border-color: #5a4de1;
+    border-color: ${({ theme }) => theme.primary};
     outline: none;
   }
 `;
@@ -302,18 +303,18 @@ const StaffWrapper = styled.div`
 
 const StaffLabel = styled.label`
   font-size: 0.9rem;
-  color: #555;
+  color: ${({ theme }) => theme.text};
 `;
 
 const StaffInput = styled.input.attrs({ type: "number" })`
   width: 40px;
   font-size: 1rem;
   padding: 4px 6px;
-  border: 1.5px solid #ccc;
+  border: 1.5px solid ${({ theme }) => theme.border};
   border-radius: 6px;
 
   &:focus {
-    border-color: #5a4de1;
+    border-color: ${({ theme }) => theme.primary};
     outline: none;
   }
 `;
@@ -327,8 +328,8 @@ const ButtonsRow = styled.div`
 
 const CancelButton = styled.button`
   border: none;
-  background: #ddd;
-  color: #333;
+  background: ${({ theme }) => theme.secondary};
+  color: ${({ theme }) => theme.text};
   padding: 10px 20px;
   font-weight: 600;
   font-size: 1rem;
@@ -336,14 +337,14 @@ const CancelButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #bbb;
+    background: ${({ theme }) => theme.border};
   }
 `;
 
 const SaveButton = styled.button`
   border: none;
-  background: #5a4de1;
-  color: white;
+  background: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.background};
   padding: 10px 24px;
   font-weight: 600;
   font-size: 1rem;
@@ -351,6 +352,6 @@ const SaveButton = styled.button`
   cursor: pointer;
 
   &:hover {
-    background: #433db9;
+    background: ${({ theme }) => theme.secondary};
   }
 `;

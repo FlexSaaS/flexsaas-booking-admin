@@ -9,7 +9,6 @@ import styled from "styled-components";
 import type { IEmailService } from "../types";
 import { EmailJsService } from "../services/EmailJSService";
 
-// In future create a provider and surround the entire App.
 const emailService: IEmailService = new EmailJsService();
 
 function AuthPage() {
@@ -100,13 +99,17 @@ function AuthPage() {
 
 export default AuthPage;
 
+// ---------------- Styled Components ----------------
 
-// Styled components
 const Container = styled.div`
-  max-width: 400px;
-  margin: 50px auto;
+  max-width: 500px;
+  margin: 80px auto;
   text-align: center;
   font-family: system-ui, sans-serif;
+  background-color: #f9f9f9;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 `;
 
 const Form = styled.form`
@@ -115,44 +118,69 @@ const Form = styled.form`
 `;
 
 const Title = styled.h2`
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  color: #1a73e8;
+  font-size: 1.8rem;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 8px;
-  margin: 8px 0;
+  width: 94%;
+  padding: 12px 14px;
+  margin: 10px 0;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #e8f0fe;
+    outline: none;
+  }
 `;
 
 const Button = styled.button`
-  padding: 10px 20px;
-  margin-top: 10px;
-  background-color: #4caf50;
+  padding: 12px 20px;
+  margin-top: 14px;
+  background-color: #1a73e8;
   color: white;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s, box-shadow 0.2s;
 
   &:hover {
-    background-color: #45a049;
+    background-color: #a8c7fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    background-color: #a8c7fa;
   }
 `;
 
 const Message = styled.p<{ error?: boolean }>`
-  margin-top: 10px;
-  color: ${({ error }) => (error ? "red" : "green")};
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: ${(props) => (props.error ? "#d32f2f" : "#388e3c")};
 `;
 
 const ToggleText = styled.p`
-  margin-top: 20px;
+  margin-top: 24px;
+  font-size: 0.95rem;
+  color: #333;
 `;
 
 const ToggleButton = styled.button`
   text-decoration: underline;
   background: none;
   border: none;
-  color: blue;
+  color: #1a73e8;
   cursor: pointer;
+  font-weight: 500;
+
+  &:hover {
+    color: #a8c7fa;
+  }
 `;

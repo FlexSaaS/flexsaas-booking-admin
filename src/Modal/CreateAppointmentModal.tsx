@@ -205,8 +205,6 @@ const Appointment: React.FC<PopupWindowProps> = ({
 
 export default Appointment;
 
-/* -------------------- Styled Components -------------------- */
-
 const Overlay = styled.div`
   position: fixed;
   inset: 0;
@@ -218,13 +216,12 @@ const Overlay = styled.div`
 `;
 
 const Window = styled.div`
-  background: white;
+  background: ${({ theme }) => theme.background};
   border-radius: 12px;
   padding: 20px;
   height: 850px;
   min-width: 500px;
   max-width: 90%;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 `;
 
 const Header = styled.div`
@@ -234,6 +231,7 @@ const Header = styled.div`
   font-weight: bold;
   font-size: 16px;
   padding-bottom: 10px;
+  color: ${({ theme }) => theme.text};
 `;
 
 const NavButton = styled.button`
@@ -241,6 +239,11 @@ const NavButton = styled.button`
   border: none;
   font-size: 18px;
   cursor: pointer;
+  color: ${({ theme }) => theme.primary};
+
+  &:hover {
+    color: ${({ theme }) => theme.secondary};
+  }
 `;
 
 const CalendarGrid = styled.div`
@@ -269,8 +272,9 @@ const DayColumn = styled.div`
 
 const DayHeader = styled.div<{ active?: boolean }>`
   font-weight: ${(props) => (props.active ? "bold" : "normal")};
-  color: ${(props) => (props.active ? "#fff" : "#333")};
-  background: ${(props) => (props.active ? "#1976d2" : "transparent")};
+  color: ${({ active, theme }) => (active ? theme.background : theme.text)};
+  background: ${({ active, theme }) =>
+    active ? theme.primary : "transparent"};
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -283,45 +287,54 @@ const DayHeader = styled.div<{ active?: boolean }>`
 const DayName = styled.div`
   font-size: 12px;
   margin-bottom: 8px;
+  color: ${({ theme }) => theme.text};
 `;
 
 const TimeSlot = styled.button<{ available: boolean }>`
-  background: white;
-  border: 1px solid ${(props) => (props.available ? "#e3e3e3" : "white")};
+  background: ${({ theme }) => theme.background};
+  border: 1px solid
+    ${(props) =>
+      props.available
+        ? ({ theme }) => theme.border
+        : ({ theme }) => theme.background};
   border-radius: 5px;
   width: 100px;
   height: 36px;
   display: flex;
   align-items: center;
-
   justify-content: center;
   font-size: 12px;
-  color: ${(props) => (props.available ? "#1976d2" : "#999")};
+  color: ${(props) =>
+    props.available ? ({ theme }) => theme.primary : ({ theme }) => theme.text};
   cursor: ${(props) => (props.available ? "pointer" : "default")};
   margin-bottom: 6px;
   transition: background 0.2s ease;
 
   &:hover {
-    background: ${(props) => (props.available ? "#f0f6ff" : "#f5f5f5")};
+    background: ${(props) =>
+      props.available
+        ? ({ theme }) => theme.secondary
+        : ({ theme }) => theme.border};
   }
 `;
 
 const GreyLine = styled.div`
   width: 10px;
   height: 1.5px;
-  background: #e4e4e4;
+  background: ${({ theme }) => theme.border};
   border-radius: 1px;
 `;
 
 const CloseButton = styled.button`
-  background: #ff5c5c;
+  background: ${({ theme }) => theme.primary};
   border: none;
   border-radius: 4px;
-  color: white;
+  color: ${({ theme }) => theme.background};
   padding: 6px 12px;
   cursor: pointer;
   margin-top: 20px;
+
   &:hover {
-    background: #e04848;
+    background: ${({ theme }) => theme.secondary};
   }
 `;

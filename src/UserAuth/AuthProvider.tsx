@@ -1,18 +1,21 @@
+// AuthProvider.tsx (or wherever you keep it)
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../services/FirebaseConfig";
-import { onAuthStateChanged, type User } from "firebase/auth";
+import { onAuthStateChanged, type User, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 type AuthContextType = {
   user: User | null;
   approved: boolean;
   loading: boolean;
+  logout: () => Promise<void>; // 👈 add logout
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   approved: false,
   loading: true,
+  logout: async () => {}, // default no-op
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -46,8 +49,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      console.log("User signed out");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, approved, loading }}>
+    <AuthContext.Provider value={{ user, approved, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

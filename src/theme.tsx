@@ -10,6 +10,7 @@ export const lightTheme: DefaultTheme = {
   primary: "#1a73e8",
   secondary: "#e8f0fe",
   border: "#dadce0",
+  appointmentBg: "#e8f0fe",
 };
 
 /**
@@ -21,6 +22,7 @@ export const darkTheme: DefaultTheme = {
   primary: "#a8c7fa",
   secondary: "#37393b",
   border: "#858891",
+  appointmentBg: "#37393b",
 };
 
 /**
@@ -33,5 +35,6 @@ declare module "styled-components" {
     primary: string;
     secondary: string;
     border: string;
+    appointmentBg: string;
   }
 }

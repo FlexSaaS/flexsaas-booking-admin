@@ -7,6 +7,7 @@ import Appointment from "../Modal/CreateAppointmentModal";
 import AvailabilityModal from "../Modal/AvailabilityModal";
 import type { AvailabilityType, DayAvailability } from "../types";
 import { ThemeSwitch } from "./Components/ThemeSwitch";
+import { useAuth } from "../UserAuth/AuthProvider";
 
 type SidebarProps = {
   selectedDate: Date;
@@ -18,9 +19,6 @@ type SidebarProps = {
   setDarkMode: (darkMode: boolean) => void;
 };
 
-/**
- * Sidebar component with calendar, availability, appointment booking, and theme toggle
- */
 function Sidebar({
   selectedDate,
   setSelectedDate,
@@ -32,6 +30,8 @@ function Sidebar({
 }: SidebarProps) {
   const [showAvailModal, setShowAvailModal] = useState(false);
   const [showAppointment, setShowAppointment] = useState(false);
+
+  const { logout } = useAuth();
 
   return (
     <SidebarContainer>
@@ -49,14 +49,18 @@ function Sidebar({
         <Button onClick={() => setShowAvailModal(true)}>
           Set Availability
         </Button>
+
         <Button onClick={() => setShowAppointment(true)}>
           Book Appointment
         </Button>
 
-        <ThemeSwitch
-          checked={!darkMode}
-          onChange={() => setDarkMode(!darkMode)}
-        />
+        <Button onClick={logout}>Log Out</Button>
+        <ThemeWrapper>
+          <ThemeSwitch
+            checked={!darkMode}
+            onChange={() => setDarkMode(!darkMode)}
+          />
+        </ThemeWrapper>
 
         {showAppointment && (
           <Appointment
@@ -101,12 +105,19 @@ const TopSection = styled.div`
   margin-bottom: 1.5rem;
 `;
 
+const ThemeWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+`;
+
 const Button = styled.button`
   margin-top: 1.5rem;
   padding: 0.6rem 1rem;
   font-size: 1rem;
   font-weight: 500;
-  background: white;
+  background: ${({ theme }) => theme.secondary};
   color: ${({ theme }) => theme.primary};
   border: 1px solid ${({ theme }) => theme.border};
   border-radius: 8px;
@@ -115,7 +126,7 @@ const Button = styled.button`
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    background-color: ${({ theme }) => theme.secondary};
+    background-color: ${({ theme }) => theme.background};
     box-shadow: 0 2px 6px ${({ theme }) => theme.primary};
   }
 

@@ -41,7 +41,7 @@ const Header = styled.div`
 
 const NavButton = styled.button`
   background-color: ${({ theme }) => theme.primary};
-  color: white;
+  color: ${({ theme }) => theme.secondary};
   font-size: 0.9rem;
   padding: 6px 12px;
   border: none;

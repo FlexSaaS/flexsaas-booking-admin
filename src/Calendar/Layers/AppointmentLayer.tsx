@@ -142,8 +142,8 @@ const AppointmentItem = styled.div`
   padding: 2px 5px;
   box-sizing: border-box;
   border-radius: 4px;
-  background-color: lightcoral;
-  color: white;
+  background-color: ${({ theme }) => theme.primary};
+  color: ${({ theme }) => theme.secondary};
   font-size: 0.75rem;
   overflow: hidden;
   white-space: nowrap;

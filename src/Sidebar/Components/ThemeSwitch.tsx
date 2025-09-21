@@ -61,7 +61,7 @@ const Slider = styled.span<{ checked: boolean }>`
   inset: 0;
   border-radius: 30px;
   overflow: hidden;
-  background-color: ${({ checked }) => (checked ? "#00a6ff" : "#2a2a2a")};
+  background-color: ${({ checked }) => (checked ? "#1a73e8" : "#2a2a2a")};
   transition: 0.4s;
   cursor: pointer;
 
