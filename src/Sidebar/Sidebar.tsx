@@ -2,27 +2,33 @@ import { useState } from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
-import CalendarSmall from "./CalendarSmall";
-import Appointment from "./Appointment";
-import AvailabilityModal from "./AvailabilityModal";
-import type { AvailabilityType, EventType } from "./types";
+import SmallCalendar from "./Components/SmallCalendar";
+import Appointment from "../Modal/CreateAppointmentModal";
+import AvailabilityModal from "../Modal/AvailabilityModal";
+import type { AvailabilityType, DayAvailability } from "../types";
+import { ThemeSwitch } from "./Components/ThemeSwitch";
 
 type SidebarProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   availability: AvailabilityType[];
-  onSaveAvailability: (
-    data: { date: Date; times: number[]; staffCount: number }[]
-  ) => void;
-  onTimeSelected: (event: EventType) => void;
+  onSaveAvailability: (year: number, availability: DayAvailability[]) => void;
+  onTimeSelected: (time: string, date: Date) => void;
+  darkMode: boolean;
+  setDarkMode: (darkMode: boolean) => void;
 };
 
+/**
+ * Sidebar component with calendar, availability, appointment booking, and theme toggle
+ */
 function Sidebar({
   selectedDate,
   setSelectedDate,
   onSaveAvailability,
   onTimeSelected,
   availability,
+  darkMode,
+  setDarkMode,
 }: SidebarProps) {
   const [showAvailModal, setShowAvailModal] = useState(false);
   const [showAppointment, setShowAppointment] = useState(false);
@@ -35,7 +41,7 @@ function Sidebar({
           <span>Calendar</span>
         </TopSection>
 
-        <CalendarSmall
+        <SmallCalendar
           selectedDate={selectedDate}
           onSelectDate={(date) => setSelectedDate(date)}
         />
@@ -46,6 +52,11 @@ function Sidebar({
         <Button onClick={() => setShowAppointment(true)}>
           Book Appointment
         </Button>
+
+        <ThemeSwitch
+          checked={!darkMode}
+          onChange={() => setDarkMode(!darkMode)}
+        />
 
         {showAppointment && (
           <Appointment

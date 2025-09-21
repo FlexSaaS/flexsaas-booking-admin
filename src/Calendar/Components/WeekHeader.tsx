@@ -6,29 +6,29 @@ type WeekHeaderProps = {
   weekRange: string;
 };
 
-const WeekHeader = ({
+const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000; // milliseconds in 7 days
+
+/**
+ * WeekHeader renders navigation for the weekly calendar.
+ * Users can navigate to the previous or next week and see the current week range.
+ */
+function WeekHeader({
   selectedDate,
   setSelectedDate,
   weekRange,
-}: WeekHeaderProps) => (
-  <Header>
-    <NavButton
-      onClick={() =>
-        setSelectedDate(new Date(selectedDate.getTime() - 7 * 24 * 3600 * 1000))
-      }
-    >
-      ← Previous
-    </NavButton>
-    <WeekLabel>Week of {weekRange}</WeekLabel>
-    <NavButton
-      onClick={() =>
-        setSelectedDate(new Date(selectedDate.getTime() + 7 * 24 * 3600 * 1000))
-      }
-    >
-      Next →
-    </NavButton>
-  </Header>
-);
+}: WeekHeaderProps) {
+  const changeWeek = (offset: number) => {
+    setSelectedDate(new Date(selectedDate.getTime() + offset * ONE_WEEK_MS));
+  };
+
+  return (
+    <Header>
+      <NavButton onClick={() => changeWeek(-1)}>← Previous</NavButton>
+      <WeekLabel>Week of {weekRange}</WeekLabel>
+      <NavButton onClick={() => changeWeek(1)}>Next →</NavButton>
+    </Header>
+  );
+}
 
 export default WeekHeader;
 

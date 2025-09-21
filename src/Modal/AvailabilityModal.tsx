@@ -1,60 +1,24 @@
 import { useState } from "react";
 import styled from "styled-components";
-
-const daysOfWeek = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-
-type DayAvailability = {
-  day: string;
-  isOpen: boolean;
-  start: number;
-  end: number;
-  staffCount: number;
-};
+import { daysOfWeek, type DayAvailability } from "../types";
 
 type Props = {
   onClose: () => void;
-  onSave: (data: { date: Date; times: number[]; staffCount: number }[]) => void;
+  onSave: (year: number, availability: DayAvailability[]) => void;
 };
 
-const timeOptions = [
-  { value: 480, label: "8:00am" },
-  { value: 510, label: "8:30am" },
-  { value: 540, label: "9:00am" },
-  { value: 570, label: "9:30am" },
-  { value: 600, label: "10:00am" },
-  { value: 630, label: "10:30am" },
-  { value: 660, label: "11:00am" },
-  { value: 690, label: "11:30am" },
-  { value: 720, label: "12:00pm" },
-  { value: 750, label: "12:30pm" },
-  { value: 780, label: "1:00pm" },
-  { value: 810, label: "1:30pm" },
-  { value: 840, label: "2:00pm" },
-  { value: 870, label: "2:30pm" },
-  { value: 900, label: "3:00pm" },
-  { value: 930, label: "3:30pm" },
-  { value: 960, label: "4:00pm" },
-  { value: 990, label: "4:30pm" },
-  { value: 1020, label: "5:00pm" },
-  { value: 1050, label: "5:30pm" },
-  { value: 1080, label: "6:00pm" },
-  { value: 1110, label: "6:30pm" },
-  { value: 1140, label: "7:00pm" },
-  { value: 1170, label: "7:30pm" },
-  { value: 1200, label: "8:00pm" },
-  { value: 1230, label: "8:30pm" },
-  { value: 1260, label: "9:00pm" },
-];
+// Predefined time options in minutes from midnight
+const timeOptions = Array.from({ length: 26 }, (_, i) => ({
+  value: 480 + i * 30,
+  label: `${Math.floor((480 + i * 30) / 60)}:${((480 + i * 30) % 60)
+    .toString()
+    .padStart(2, "0")}${480 + i * 30 < 720 ? "am" : "pm"}`,
+}));
 
-export default function AvailabilityModal({ onClose, onSave }: Props) {
+/**
+ * Modal component to set weekly availability for a selected year.
+ */
+function AvailabilityModal({ onClose, onSave }: Props) {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
 
@@ -68,6 +32,7 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
     }))
   );
 
+  // Toggle day open/closed and reset default hours/staff
   const toggleOpen = (index: number) => {
     setAvailability((prev) =>
       prev.map((item, i) =>
@@ -84,12 +49,14 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
     );
   };
 
+  // Update start or end time for a day
   const updateTime = (index: number, field: "start" | "end", value: number) => {
     setAvailability((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
     );
   };
 
+  // Update number of staff for a day
   const updateStaff = (index: number, value: number) => {
     if (value < 1) return;
     setAvailability((prev) =>
@@ -99,75 +66,6 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
     );
   };
 
-  function getAllDatesInYear(year: number): Date[] {
-    const dates = [];
-    const date = new Date(year, 0, 1);
-
-    while (date.getFullYear() === year) {
-      dates.push(new Date(date));
-      date.setDate(date.getDate() + 1);
-    }
-
-    return dates;
-  }
-
-  function generateTimesAsNumbers(start: number, end: number): number[] {
-    const times: number[] = [];
-    for (let time = start; time <= end; time += 30) {
-      times.push(time);
-    }
-    return times;
-  }
-
-  function generateAvailableTimesForYear(
-    year: number,
-    availability: DayAvailability[]
-  ): { date: Date; times: number[]; staffCount: number }[] {
-    const datesInYear = getAllDatesInYear(year);
-    const availabilityMap = new Map(availability.map((a) => [a.day, a]));
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // normalize today's date to midnight
-
-    return datesInYear
-      .filter((date) => {
-        const dateCopy = new Date(date);
-        dateCopy.setHours(0, 0, 0, 0);
-        return dateCopy >= today;
-      })
-      .map((date) => {
-        const dayName = daysOfWeek[date.getDay() === 0 ? 6 : date.getDay() - 1];
-        const dayAvailability = availabilityMap.get(dayName);
-
-        if (dayAvailability && dayAvailability.isOpen) {
-          // Generate all times from start to end
-          const times = generateTimesAsNumbers(
-            dayAvailability.start,
-            dayAvailability.end
-          );
-
-          // Exclude last 30 minutes before closing
-          const maxTime = dayAvailability.end - 30; // subtract 30 mins
-          const filteredTimes = times.filter((t) => t <= maxTime);
-
-          return {
-            date,
-            times: filteredTimes,
-            staffCount: dayAvailability.staffCount,
-          };
-        }
-
-        return null;
-      })
-      .filter(Boolean) as { date: Date; times: number[]; staffCount: number }[];
-  }
-
-  const handleSave = () => {
-    const fullAvailability = generateAvailableTimesForYear(year, availability);
-    onSave(fullAvailability);
-    onClose();
-  };
-
   const yearOptions = Array.from({ length: 11 }, (_, i) => currentYear - 5 + i);
 
   return (
@@ -175,7 +73,7 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
       <Modal>
         <Title>Set Yearly Hours</Title>
         <Subtitle>
-          Configure the standard hours of operation for this location for the
+          Configure standard hours of operation for this location for the
           selected year.
         </Subtitle>
 
@@ -194,10 +92,12 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
         {availability.map(({ day, isOpen, start, end, staffCount }, idx) => (
           <DayRow key={day}>
             <DayName>{day}</DayName>
+
             <ToggleLabel>
               <ToggleInput checked={isOpen} onChange={() => toggleOpen(idx)} />
               <Slider />
             </ToggleLabel>
+
             <ToggleText>{isOpen ? "Open" : "Closed"}</ToggleText>
 
             {isOpen && (
@@ -249,12 +149,16 @@ export default function AvailabilityModal({ onClose, onSave }: Props) {
 
         <ButtonsRow>
           <CancelButton onClick={onClose}>Cancel</CancelButton>
-          <SaveButton onClick={handleSave}>Save Schedule</SaveButton>
+          <SaveButton onClick={() => onSave(year, availability)}>
+            Save Schedule
+          </SaveButton>
         </ButtonsRow>
       </Modal>
     </Overlay>
   );
 }
+
+export default AvailabilityModal;
 
 const YearSelector = styled.select`
   width: 120px;

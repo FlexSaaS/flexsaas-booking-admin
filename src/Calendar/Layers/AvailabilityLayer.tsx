@@ -1,6 +1,6 @@
-import React from "react";
 import styled from "styled-components";
-import type { AvailabilityType } from "../types";
+import type { AvailabilityType } from "../../types";
+import { END_MINUTES, START_MINUTES } from "../../utils";
 
 type AvailabilityLayerProps = {
   gridWidth: number;
@@ -10,41 +10,43 @@ type AvailabilityLayerProps = {
   startOfWeek: Date;
 };
 
-const START_MINUTES = 8 * 60;
-const END_MINUTES = 21 * 60;
-
-const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
-
-const AvailabilityLayer: React.FC<AvailabilityLayerProps> = ({
+/**
+ * AvailabilityLayer renders a weekly grid showing unavailable time blocks.
+ * It overlays semi-transparent blocks for times when no availability exists.
+ */
+function AvailabilityLayer({
   gridWidth,
   gridHeight,
   daysCount,
   availability,
   startOfWeek,
-}) => {
+}: AvailabilityLayerProps) {
   const columnWidth = gridWidth / daysCount;
   const totalMinutes = END_MINUTES - START_MINUTES;
 
+  const toMinutes = (date: Date) => date.getHours() * 60 + date.getMinutes();
+
+  // Map day index -> { start, end } of availability
   const availabilityByDay = new Map<number, { start: Date; end: Date }>();
 
   availability.forEach((entry) => {
-    if (entry.times.length > 0) {
-      const firstMinutes = entry.times[0];
-      const lastMinutes = entry.times[entry.times.length - 1];
+    if (entry.times.length === 0) return;
 
-      const start = new Date(entry.date);
-      start.setHours(Math.floor(firstMinutes / 60), firstMinutes % 60, 0, 0);
+    const firstMinutes = entry.times[0];
+    const lastMinutes = entry.times[entry.times.length - 1];
 
-      const end = new Date(entry.date);
-      end.setHours(Math.floor(lastMinutes / 60), lastMinutes % 60, 0, 0);
+    const start = new Date(entry.date);
+    start.setHours(Math.floor(firstMinutes / 60), firstMinutes % 60, 0, 0);
 
-      const dayIndex = Math.floor(
-        (entry.date.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24)
-      );
+    const end = new Date(entry.date);
+    end.setHours(Math.floor(lastMinutes / 60), lastMinutes % 60, 0, 0);
 
-      if (dayIndex >= 0 && dayIndex < daysCount) {
-        availabilityByDay.set(dayIndex, { start, end });
-      }
+    const dayIndex = Math.floor(
+      (entry.date.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    if (dayIndex >= 0 && dayIndex < daysCount) {
+      availabilityByDay.set(dayIndex, { start, end });
     }
   });
 
@@ -52,20 +54,24 @@ const AvailabilityLayer: React.FC<AvailabilityLayerProps> = ({
     <>
       {Array.from({ length: daysCount }, (_, dayIndex) => {
         const slot = availabilityByDay.get(dayIndex);
-        const overlays = [];
+        const overlays: { top: number; height: number }[] = [];
 
         if (!slot) {
           overlays.push({ top: 0, height: gridHeight });
         } else {
           const availableStart = toMinutes(slot.start);
-          const availableEnd = toMinutes(slot.end);
+          const availableEnd = Math.min(toMinutes(slot.end) + 30, END_MINUTES);
 
+          // Top overlay if unavailable before available start
           if (availableStart > START_MINUTES) {
-            const top =
-              ((availableStart - START_MINUTES) / totalMinutes) * gridHeight;
-            overlays.push({ top: 0, height: top });
+            overlays.push({
+              top: 0,
+              height:
+                ((availableStart - START_MINUTES) / totalMinutes) * gridHeight,
+            });
           }
 
+          // Bottom overlay if unavailable after available end
           if (availableEnd < END_MINUTES) {
             const top =
               ((availableEnd - START_MINUTES) / totalMinutes) * gridHeight;
@@ -104,10 +110,11 @@ const AvailabilityLayer: React.FC<AvailabilityLayerProps> = ({
       })}
     </>
   );
-};
+}
 
 export default AvailabilityLayer;
 
+// Styled component for unavailable time overlay
 const UnavailableBlock = styled.div`
   position: absolute;
   background-color: rgba(175, 175, 175, 0.3);

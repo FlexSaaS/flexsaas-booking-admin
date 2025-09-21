@@ -1,25 +1,29 @@
-import WeekHeader from "./WeekHeader";
-import DaysHeader from "./DaysHeader";
-import TimeLabels from "./TimeLabels";
-import TimeSlotsGrid from "./TimeSlotsGrid";
+import WeekHeader from "./Components/WeekHeader";
+import DaysHeader from "./Components/DaysHeader";
+import TimeLabels from "./Components/TimeLabels";
+import TimeSlotsGrid from "./Components/TimeSlotsGrid";
+import CurrentTimeLine from "./Layers/CurrentTimeLine";
+import EventsLayer from "./Layers/AppointmentLayer";
+import AvailabilityLayer from "./Layers/AvailabilityLayer";
 import styled from "styled-components";
 import { useRef, useEffect, useState, useMemo } from "react";
-import CurrentTimeLine from "./CurrentTimeLine";
-import EventsLayer from "./EventsLayer";
-import AvailabilityLayer from "./AvailabilityLayer";
-import type { AvailabilityType, EventType } from "../types";
+import type { Appointment, AvailabilityType } from "../types";
 
 type WeekViewProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
-  events: EventType[];
+  appointments: Appointment[];
   availability: AvailabilityType[];
+  onDeleteEvent: (eventId: string) => void;
 };
 
 const HOURS_START = 8;
 const HOURS_COUNT = 13;
 const DAYS_IN_WEEK = 7;
 
+/**
+ * Returns the Monday of the week for the given date.
+ */
 function getStartOfWeek(date: Date) {
   const dayOfWeek = date.getDay();
   const daysFromMonday = (dayOfWeek + 6) % 7;
@@ -29,6 +33,9 @@ function getStartOfWeek(date: Date) {
   return start;
 }
 
+/**
+ * Generates an array of days for the week starting from `startOfWeek`.
+ */
 function generateWeekDays(startOfWeek: Date) {
   return Array.from({ length: DAYS_IN_WEEK }, (_, i) => {
     const date = new Date(startOfWeek);
@@ -42,6 +49,9 @@ function generateWeekDays(startOfWeek: Date) {
   });
 }
 
+/**
+ * Formats the week range string (e.g., "Sep 1 – Sep 7").
+ */
 function formatWeekRange(startOfWeek: Date) {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + DAYS_IN_WEEK - 1);
@@ -55,11 +65,16 @@ function formatWeekRange(startOfWeek: Date) {
   )} – ${endOfWeek.toLocaleDateString(undefined, options)}`;
 }
 
+/**
+ * WeekView displays a weekly calendar view with time slots, appointments, availability,
+ * and a current time line indicator.
+ */
 function WeekView({
   selectedDate,
   setSelectedDate,
-  events,
+  appointments,
   availability,
+  onDeleteEvent,
 }: WeekViewProps) {
   const startOfWeek = useMemo(
     () => getStartOfWeek(selectedDate),
@@ -75,6 +90,7 @@ function WeekView({
   const [gridHeight, setGridHeight] = useState(0);
   const [gridWidth, setGridWidth] = useState(0);
 
+  // Observe grid wrapper size to dynamically calculate positions
   useEffect(() => {
     if (!gridWrapperRef.current) return;
 
@@ -86,7 +102,6 @@ function WeekView({
     });
 
     observer.observe(gridWrapperRef.current);
-
     return () => observer.disconnect();
   }, []);
 
@@ -115,14 +130,15 @@ function WeekView({
             gridHeight={gridHeight}
             daysCount={days.length}
             availability={availability}
-            startOfWeek={startOfWeek} // pass here
+            startOfWeek={startOfWeek}
           />
           <EventsLayer
-            events={events}
+            appointments={appointments}
             gridWidth={gridWidth}
             gridHeight={gridHeight}
             daysCount={days.length}
             startOfWeek={startOfWeek}
+            onDeleteEvent={onDeleteEvent}
           />
           <TimeSlotsGrid daysLength={days.length} hoursLength={hours.length} />
         </GridWrapper>
@@ -133,14 +149,15 @@ function WeekView({
 
 export default WeekView;
 
-const GridWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(13, 1fr);
-  box-sizing: border-box;
-  position: relative;
+/* Styled Components */
+
+const Container = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background-color: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
 `;
 
 const WeekContainer = styled.div`
@@ -153,11 +170,12 @@ const WeekContainer = styled.div`
   padding: 25px 25px 25px 5px;
 `;
 
-const Container = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  background-color: ${({ theme }) => theme.background};
-  color: ${({ theme }) => theme.text};
+const GridWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(13, 1fr);
+  box-sizing: border-box;
+  position: relative;
 `;

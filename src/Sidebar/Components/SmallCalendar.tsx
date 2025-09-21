@@ -1,50 +1,60 @@
-import { useState } from "react";
+// CalendarSmall.tsx
+import { useState, useMemo } from "react";
 import styled from "styled-components";
 
-type CalendarProps = {
+type SmallCalendarProps = {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
 };
 
-function CalendarSmall({ selectedDate, onSelectDate }: CalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date(selectedDate));
+/**
+ * A compact calendar component displaying the current month
+ * with selectable days. Supports previous/next month navigation.
+ */
+function SmallCalendar({ selectedDate, onSelectDate }: SmallCalendarProps) {
+  const [currentMonth, setCurrentMonth] = useState(
+    new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+  );
 
-  const startOfMonth = new Date(
-    currentMonth.getFullYear(),
-    currentMonth.getMonth(),
-    1
-  );
-  const endOfMonth = new Date(
-    currentMonth.getFullYear(),
-    currentMonth.getMonth() + 1,
-    0
-  );
   const today = new Date();
 
-  const getDaysMatrix = () => {
-    const days: Date[] = [];
+  // Returns a matrix of days for the current month including empty slots for alignment
+  const days = useMemo(() => {
+    const startOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + 1,
+      0
+    );
 
-    const startDay = (startOfMonth.getDay() + 6) % 7; // Adjust for Monday start
-    for (let i = 0; i < startDay; i++) {
-      days.push(new Date(NaN)); // Empty cells
-    }
+    const daysArray: Date[] = [];
+    const startDay = (startOfMonth.getDay() + 6) % 7; // Monday start
+    for (let i = 0; i < startDay; i++) daysArray.push(new Date(NaN));
 
     for (let d = 1; d <= endOfMonth.getDate(); d++) {
-      days.push(
+      daysArray.push(
         new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d)
       );
     }
 
-    return days;
-  };
+    return daysArray;
+  }, [currentMonth]);
 
-  const days = getDaysMatrix();
   const weekdays = ["M", "T", "W", "T", "F", "S", "S"];
 
   const isSameDay = (d1: Date, d2: Date) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
+
+  const changeMonth = (offset: number) =>
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1)
+    );
 
   return (
     <CalendarWrapper>
@@ -53,33 +63,8 @@ function CalendarSmall({ selectedDate, onSelectDate }: CalendarProps) {
           {currentMonth.toLocaleString("default", { month: "long" })}{" "}
           {currentMonth.getFullYear()}
         </div>
-        <Button
-          onClick={() =>
-            setCurrentMonth(
-              new Date(
-                currentMonth.getFullYear(),
-                currentMonth.getMonth() - 1,
-                1
-              )
-            )
-          }
-        >
-          ‹
-        </Button>
-
-        <Button
-          onClick={() =>
-            setCurrentMonth(
-              new Date(
-                currentMonth.getFullYear(),
-                currentMonth.getMonth() + 1,
-                1
-              )
-            )
-          }
-        >
-          ›
-        </Button>
+        <Button onClick={() => changeMonth(-1)}>‹</Button>
+        <Button onClick={() => changeMonth(1)}>›</Button>
       </Header>
 
       <Grid>
@@ -102,7 +87,7 @@ function CalendarSmall({ selectedDate, onSelectDate }: CalendarProps) {
   );
 }
 
-export default CalendarSmall;
+export default SmallCalendar;
 
 const CalendarWrapper = styled.div`
   border-radius: 8px;

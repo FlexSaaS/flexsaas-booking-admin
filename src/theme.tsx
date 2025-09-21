@@ -1,6 +1,9 @@
 import type { DefaultTheme } from "styled-components";
 import "styled-components";
 
+/**
+ * Light theme colors
+ */
 export const lightTheme: DefaultTheme = {
   background: "#f8f9fa",
   text: "#202124",
@@ -9,6 +12,9 @@ export const lightTheme: DefaultTheme = {
   border: "#dadce0",
 };
 
+/**
+ * Dark theme colors
+ */
 export const darkTheme: DefaultTheme = {
   background: "#1f1f22",
   text: "#e9e9e9",
@@ -17,6 +23,9 @@ export const darkTheme: DefaultTheme = {
   border: "#858891",
 };
 
+/**
+ * Extend styled-components DefaultTheme interface
+ */
 declare module "styled-components" {
   export interface DefaultTheme {
     background: string;
