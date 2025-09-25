@@ -116,10 +116,7 @@ function App() {
   /**
    * Handle selecting a time slot for an appointment
    */
-  const handleTimeSelected = async (
-    time: string,
-    date: Date
-  ): Promise<void> => {
+  const handleTimeSelected = async (time: string, date: Date, client: { name: string; email: string; phone: string }): Promise<void> => {
     const durationMinutes = 60;
 
     // Parse time string into hours and minutes
@@ -138,9 +135,7 @@ function App() {
     start.setHours(hour, minute, 0, 0);
 
     // Check availability for the selected date
-    const dayAvailability = availability.find(
-      (a) => a.date.toDateString() === date.toDateString()
-    );
+    const dayAvailability = availability.find((a) => a.date.toDateString() === date.toDateString());
 
     if (!dayAvailability) return alert("No availability for this date");
 
@@ -148,17 +143,12 @@ function App() {
     const startIndex = dayAvailability.times.indexOf(startMinutes);
     if (startIndex === -1) return alert("Selected start time is not available");
 
-    const contiguousSlots = dayAvailability.times.slice(
-      startIndex,
-      startIndex + slotsNeeded
-    );
-    if (contiguousSlots.length < slotsNeeded)
-      return alert("Not enough available slots");
+    const contiguousSlots = dayAvailability.times.slice(startIndex, startIndex + slotsNeeded);
+    if (contiguousSlots.length < slotsNeeded) return alert("Not enough available slots");
 
     // Ensure slots are contiguous
     for (let i = 1; i < contiguousSlots.length; i++) {
-      if (contiguousSlots[i] !== contiguousSlots[i - 1] + 30)
-        return alert("Slots are not contiguous");
+      if (contiguousSlots[i] !== contiguousSlots[i - 1] + 30) return alert("Slots are not contiguous");
     }
 
     // Placeholder client info and service
@@ -168,11 +158,7 @@ function App() {
       date: start,
       time,
       service: "General Consultation",
-      client: {
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "123-456-7890",
-      },
+      client,
       notes: "",
     };
 
@@ -182,9 +168,7 @@ function App() {
       prev
         .map((a) => {
           if (a.date.toDateString() === date.toDateString()) {
-            const newTimes = a.times.filter(
-              (t) => !contiguousSlots.includes(t)
-            );
+            const newTimes = a.times.filter((t) => !contiguousSlots.includes(t));
             const newStaffCount = Math.max(a.staffCount - 1, 0);
             return { ...a, times: newTimes, staffCount: newStaffCount };
           }
