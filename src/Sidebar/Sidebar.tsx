@@ -5,33 +5,62 @@ import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import SmallCalendar from "./Components/SmallCalendar";
 import Appointment from "../Modal/CreateAppointmentModal";
 import AvailabilityModal from "../Modal/AvailabilityModal";
-import type { AvailabilityType, DayAvailability } from "../types";
+import type { AvailabilityType, DayAvailability, Client } from "../types";
 import { ThemeSwitch } from "./Components/ThemeSwitch";
 import { useAuth } from "../UserAuth/AuthProvider";
+import ClientFormModal from "../Modal/ClientFormModal";
 
 type SidebarProps = {
   selectedDate: Date;
   setSelectedDate: (date: Date) => void;
   availability: AvailabilityType[];
   onSaveAvailability: (year: number, availability: DayAvailability[]) => void;
-  onTimeSelected: (time: string, date: Date) => void;
+  onTimeSelected: (time: string, date: Date, client: Client) => void;
   darkMode: boolean;
   setDarkMode: (darkMode: boolean) => void;
 };
 
-function Sidebar({
-  selectedDate,
-  setSelectedDate,
-  onSaveAvailability,
-  onTimeSelected,
-  availability,
-  darkMode,
-  setDarkMode,
-}: SidebarProps) {
+function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSelected, availability, darkMode, setDarkMode }: SidebarProps) {
   const [showAvailModal, setShowAvailModal] = useState(false);
   const [showAppointment, setShowAppointment] = useState(false);
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [clientDetails, setClientDetails] = useState<Client>({
+    name: "",
+    email: "",
+    phone: "",
+  });
 
   const { logout } = useAuth();
+
+  const handleBookAppointmentClick = () => {
+    setShowClientForm(true);
+  };
+
+  const handleClientFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Validate required fields
+    if (!clientDetails.name.trim() || !clientDetails.email.trim()) {
+      alert("Please fill in at least name and email fields");
+      return;
+    }
+    setShowClientForm(false);
+    setShowAppointment(true);
+  };
+
+  const handleClientFormClose = () => {
+    setShowClientForm(false);
+    setClientDetails({ name: "", email: "", phone: "" });
+  };
+
+  const handleAppointmentClose = () => {
+    setShowAppointment(false);
+    // Reset client details when appointment modal closes
+    setClientDetails({ name: "", email: "", phone: "" });
+  };
+
+  const handleTimeSelected = (time: string, date: Date) => {
+    onTimeSelected(time, date, clientDetails);
+  };
 
   return (
     <SidebarContainer>
@@ -41,41 +70,31 @@ function Sidebar({
           <span>Calendar</span>
         </TopSection>
 
-        <SmallCalendar
-          selectedDate={selectedDate}
-          onSelectDate={(date) => setSelectedDate(date)}
-        />
+        <SmallCalendar selectedDate={selectedDate} onSelectDate={(date) => setSelectedDate(date)} />
 
-        <Button onClick={() => setShowAvailModal(true)}>
-          Set Availability
-        </Button>
+        <Button onClick={() => setShowAvailModal(true)}>Set Availability</Button>
 
-        <Button onClick={() => setShowAppointment(true)}>
-          Book Appointment
-        </Button>
+        <Button onClick={handleBookAppointmentClick}>Book Appointment</Button>
 
         <Button onClick={logout}>Log Out</Button>
         <ThemeWrapper>
-          <ThemeSwitch
-            checked={!darkMode}
-            onChange={() => setDarkMode(!darkMode)}
-          />
+          <ThemeSwitch checked={!darkMode} onChange={() => setDarkMode(!darkMode)} />
         </ThemeWrapper>
 
-        {showAppointment && (
-          <Appointment
-            onClose={() => setShowAppointment(false)}
-            availableTimes={availability}
-            onTimeSelected={onTimeSelected}
+        {/* Client Details Form Modal */}
+        {showClientForm && (
+            <ClientFormModal
+            clientDetails={clientDetails}
+            setClientDetails={setClientDetails}
+            onClose={handleClientFormClose}
+            onSubmit={handleClientFormSubmit}
           />
         )}
 
-        {showAvailModal && (
-          <AvailabilityModal
-            onClose={() => setShowAvailModal(false)}
-            onSave={onSaveAvailability}
-          />
-        )}
+        {/* Appointment Time Selection Modal */}
+        {showAppointment && <Appointment onClose={handleAppointmentClose} availableTimes={availability} onTimeSelected={handleTimeSelected} />}
+
+        {showAvailModal && <AvailabilityModal onClose={() => setShowAvailModal(false)} onSave={onSaveAvailability} />}
       </div>
     </SidebarContainer>
   );
@@ -83,6 +102,7 @@ function Sidebar({
 
 export default Sidebar;
 
+// Styled components
 const SidebarContainer = styled.div`
   width: 280px;
   background-color: ${({ theme }) => theme.background};
@@ -139,3 +159,7 @@ const Button = styled.button`
     background-color: ${({ theme }) => theme.background};
   }
 `;
+
+
+
+

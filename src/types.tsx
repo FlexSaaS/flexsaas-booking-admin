@@ -22,6 +22,11 @@ export interface Appointment {
   notes?: string;
 }
 
+export interface Client {
+  name: string;
+  email: string;
+  phone: string;
+}
 // Represents standard availability for a day of the week
 export interface DayAvailability {
   day: string; // e.g., "Monday"
