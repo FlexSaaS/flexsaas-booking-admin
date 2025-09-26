@@ -184,12 +184,17 @@ const Appointment: React.FC<PopupWindowProps> = ({
                   const available = d.slots.includes(time);
                   return (
                     <TimeSlot
-                      key={i}
-                      available={available}
-                      onClick={() => available && onTimeSelected(time, d.date)}
-                    >
-                      {available ? time : <GreyLine />}
-                    </TimeSlot>
+                    key={i}
+                    available={available}
+                    onClick={() => {
+                      if (available) {
+                        onTimeSelected(time, d.date);
+                        onClose(); // Close the modal after time selection to show success message
+                      }
+                    }}
+                  >
+                    {available ? time : <GreyLine />}
+                  </TimeSlot>
                   );
                 })}
               </DayColumn>

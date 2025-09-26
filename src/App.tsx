@@ -15,6 +15,7 @@ import { FirestoreDataAccess } from "./services/FirebaseService";
 import { generateTimesAsNumbers, getAllDatesInYear } from "./utils";
 import { useAuth } from "./UserAuth/AuthProvider";
 import AuthPage from "./UserAuth/AuthPage";
+import { SuccessModal } from "./Modal/SuccesModal";
 
 /**
  * Main App component responsible for:
@@ -36,6 +37,9 @@ function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availability, setAvailability] = useState<AvailabilityType[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
+  const [savedAppointment, setSavedAppointment] = useState<Appointment | null>(null);
+
 
   const dataAccess = new FirestoreDataAccess();
   const AvailabilityId = new Date().getFullYear().toString();
@@ -194,6 +198,11 @@ function App() {
         )
       );
       console.log("Appointment and availability saved");
+
+          // Show success modal
+    setSavedAppointment(appointment);
+    setShowSuccessModal(true);
+
     } catch (error) {
       console.error("Failed to save appointment or availability:", error);
     }
@@ -232,6 +241,12 @@ function App() {
           availability={availability}
           onDeleteEvent={handleDeleteEvent}
         />
+        {showSuccessModal && savedAppointment && (
+        <SuccessModal
+          appointment={savedAppointment}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
       </Wrapper>
     </ThemeProvider>
   );
