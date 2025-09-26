@@ -22,7 +22,7 @@ function EventModal({ event, onClose, onDelete }: EventModalProps) {
       <Modal onClick={(e) => e.stopPropagation()}>
         <Header>
           <ServiceIcon>📅</ServiceIcon>
-          <h3>{event.service}</h3>
+          <h3>Appointment Details</h3>
           <CloseButton onClick={onClose}>×</CloseButton>
         </Header>
 
@@ -41,6 +41,14 @@ function EventModal({ event, onClose, onDelete }: EventModalProps) {
               <InfoItem>
                 <Label>Phone</Label>
                 <Value>{event.client.phone}</Value>
+              </InfoItem>
+              <InfoItem>
+                <Label>Service</Label>
+                <Value>{event.service}</Value>
+              </InfoItem>
+              <InfoItem>
+                <Label>Note</Label>
+                <Value>{event.notes?.trim() || "No additional notes"}</Value>
               </InfoItem>
             </InfoGrid>
           </ClientSection>

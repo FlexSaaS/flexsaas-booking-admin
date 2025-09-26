@@ -99,30 +99,34 @@ function AppointmentLayer({
 
   return (
     <>
-      {appointments
-        .filter((a) => isAppointmentInWeek(a.date, startOfWeek))
-        .map((appointment) => {
-          const pos = getPositionStyles(appointment);
-          if (!pos) return null;
+        {appointments
+          .filter((a) => isAppointmentInWeek(a.date, startOfWeek))
+          .map((appointment) => {
+            const pos = getPositionStyles(appointment);
+            if (!pos) return null;
 
-          return (
-            <AppointmentItem
-              key={appointment.id}
-              style={{
-                top: pos.top,
-                left: pos.left,
-                height: pos.height,
-                width: pos.width,
-              }}
-              title={`${appointment.service}\n${
-                appointment.client?.name ?? ""
-              }`}
-              onClick={() => setSelectedAppointment(appointment)}
-            >
-              {appointment.service}
-            </AppointmentItem>
-          );
-        })}
+            return (
+              <AppointmentItem
+                key={appointment.id}
+                style={{
+                  top: pos.top,
+                  left: pos.left,
+                  height: pos.height,
+                  width: pos.width,
+                }}
+                onClick={() => setSelectedAppointment(appointment)}
+
+              >
+                <AppointmentHeader>
+                  <ServiceName>{appointment.service}</ServiceName>
+                </AppointmentHeader>
+                
+                <ClientInfo>
+                  <ClientName>{appointment.client?.name || "No name"}</ClientName>
+                </ClientInfo>
+              </AppointmentItem>
+            );
+          })}
 
       {selectedAppointment && (
         <EventModal
@@ -139,15 +143,52 @@ export default AppointmentLayer;
 
 const AppointmentItem = styled.div`
   position: absolute;
-  padding: 2px 5px;
+  padding: 5px;
   box-sizing: border-box;
   border-radius: 4px;
   background-color: ${({ theme }) => theme.primary};
   color: ${({ theme }) => theme.secondary};
   font-size: 0.75rem;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
   cursor: pointer;
   user-select: none;
+  border-top: 2px solid ${({ theme }) => theme.background};
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
 `;
+
+const AppointmentHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+`;
+
+const ServiceName = styled.span`
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: ${({ theme }) => theme.secondary};
+`;
+
+
+const ClientInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const ClientName = styled.span`
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.2;
+   color: ${({ theme }) => theme.secondary};
+
+`;
+
