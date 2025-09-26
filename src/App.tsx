@@ -4,6 +4,7 @@ import styled, { createGlobalStyle } from "styled-components";
 import { darkTheme, lightTheme } from "./theme";
 import WeekView from "./Calendar/WeekView";
 import Sidebar from "./Sidebar/Sidebar";
+import { addSlotsBackToAvailability } from "./types";
 import {
   daysOfWeek,
   type Appointment,
@@ -202,9 +203,37 @@ function App() {
   /**
    * Delete an appointment by ID
    */
+    /**
+   * Delete an appointment by ID
+   */
   const handleDeleteEvent = async (eventId: string) => {
     try {
+      // Find the appointment to delete
+      const appointmentToDelete = appointments.find(a => a.id === eventId);
+      if (!appointmentToDelete) return;
+
+      // Update availability: add slots back for the correct date
+      setAvailability(prev =>
+        prev.map(a =>
+          a.date.toDateString() === appointmentToDelete.date.toDateString()
+            ? addSlotsBackToAvailability(a, appointmentToDelete.time)
+            : a
+        )
+      );
+
+      // Delete the appointment from Firestore
       await dataAccess.deleteAppointment(eventId);
+
+      // Optionally, update availability in Firestore as well
+      await dataAccess.setAvailability(
+        AvailabilityId,
+        availability.map(a =>
+          a.date.toDateString() === appointmentToDelete.date.toDateString()
+            ? addSlotsBackToAvailability(a, appointmentToDelete.time)
+            : a
+        )
+      );
+
       setAppointments((prev) => prev.filter((a) => a.id !== eventId));
       console.log("Event deleted successfully");
     } catch (error) {
