@@ -58,7 +58,7 @@ export default function ClientFormModal({
           </FormGroup>
 
           <FormGroup>
-            <Label>Phone Number</Label>
+            <Label>Phone Number *</Label>
             <Input
               type="tel"
               value={clientDetails.phone}
@@ -66,6 +66,30 @@ export default function ClientFormModal({
                 setClientDetails({ ...clientDetails, phone: e.target.value })
               }
               placeholder="(123) 456-7890"
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label>Service *</Label>
+            <Input
+              type="text"
+              value={clientDetails.service}
+              onChange={(e) =>
+                setClientDetails({ ...clientDetails, service: e.target.value })
+              }
+              placeholder="Service"
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label>Notes (Optional)</Label>
+            <Input
+              type="text"
+              value={clientDetails.notes}
+              onChange={(e) =>
+                setClientDetails({ ...clientDetails, notes: e.target.value })
+              }
+              placeholder="any additional notes..."
             />
           </FormGroup>
 

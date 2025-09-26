@@ -26,6 +26,8 @@ export interface Client {
   name: string;
   email: string;
   phone: string;
+  service: string;
+  notes?: string;
 }
 // Represents standard availability for a day of the week
 export interface DayAvailability {

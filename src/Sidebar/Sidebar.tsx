@@ -28,6 +28,8 @@ function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSele
     name: "",
     email: "",
     phone: "",
+    service: "",
+    notes:""
   });
 
   const { logout } = useAuth();
@@ -49,13 +51,13 @@ function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSele
 
   const handleClientFormClose = () => {
     setShowClientForm(false);
-    setClientDetails({ name: "", email: "", phone: "" });
+    setClientDetails({ name: "", email: "", phone: "", service:"" });
   };
 
   const handleAppointmentClose = () => {
     setShowAppointment(false);
     // Reset client details when appointment modal closes
-    setClientDetails({ name: "", email: "", phone: "" });
+    setClientDetails({ name: "", email: "", phone: "", service:"", notes:"" });
   };
 
   const handleTimeSelected = (time: string, date: Date) => {

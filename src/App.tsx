@@ -8,6 +8,7 @@ import {
   daysOfWeek,
   type Appointment,
   type AvailabilityType,
+  type Client,
   type DayAvailability,
 } from "./types";
 import { FirestoreDataAccess } from "./services/FirebaseService";
@@ -116,7 +117,7 @@ function App() {
   /**
    * Handle selecting a time slot for an appointment
    */
-  const handleTimeSelected = async (time: string, date: Date, client: { name: string; email: string; phone: string }): Promise<void> => {
+  const handleTimeSelected = async (time: string, date: Date, client:Client): Promise<void> => {
     const durationMinutes = 60;
 
     // Parse time string into hours and minutes
@@ -157,9 +158,9 @@ function App() {
       id: String(Date.now()),
       date: start,
       time,
-      service: "General Consultation",
+      service: client.service,
       client,
-      notes: "",
+      notes: client.notes,
     };
 
     // Update state locally
