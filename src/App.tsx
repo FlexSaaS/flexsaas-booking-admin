@@ -4,7 +4,7 @@ import styled, { createGlobalStyle } from "styled-components";
 import { darkTheme, lightTheme } from "./theme";
 import WeekView from "./Calendar/WeekView";
 import Sidebar from "./Sidebar/Sidebar";
-import { addSlotsBackToAvailability } from "./types";
+import { addSlotsBackToAvailability } from "./utils";
 import {
   daysOfWeek,
   type Appointment,

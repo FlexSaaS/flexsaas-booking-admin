@@ -1,4 +1,3 @@
-import { timeStringToMinutes } from "./utils";
 
 // Represents a single time slot in minutes from midnight (e.g., 0, 30, 60, ...)
 export type TimeSlot = number;
@@ -10,21 +9,7 @@ export interface AvailabilityType {
   staffCount: number;
 }
 
-// Function to add slots back to availability
 
-export function addSlotsBackToAvailability(
-  availability: AvailabilityType,
-  appointmentTime: string
-): AvailabilityType {
-  const start = timeStringToMinutes(appointmentTime);
-  const slotsToAdd = [start, start + 30];
-  
-  // Ensure no duplicates and keep sorted
-  const updatedTimes = Array.from(
-    new Set([...availability.times, ...slotsToAdd])
-  ).sort((a, b) => a - b);
-  return { ...availability, times: updatedTimes };
-}
 
 // Represents a client appointment
 export interface Appointment {

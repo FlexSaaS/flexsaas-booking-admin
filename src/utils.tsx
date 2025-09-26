@@ -1,3 +1,5 @@
+import type { AvailabilityType } from "./types";
+
 export function getAllDatesInYear(year: number): Date[] {
   const dates: Date[] = [];
   const date = new Date(year, 0, 1);
@@ -31,4 +33,19 @@ export function timeStringToMinutes(time: string): number {
   if (period && period.toLowerCase() === 'pm' && hours !== 12) hours += 12;
   if (period && period.toLowerCase() === 'am' && hours === 12) hours = 0; 
   return hours * 60 + minutes;
+}
+// Function to add slots back to availability
+
+export function addSlotsBackToAvailability(
+  availability: AvailabilityType,
+  appointmentTime: string
+): AvailabilityType {
+  const start = timeStringToMinutes(appointmentTime);
+  const slotsToAdd = [start, start + 30];
+  
+  // Ensure no duplicates and keep sorted
+  const updatedTimes = Array.from(
+    new Set([...availability.times, ...slotsToAdd])
+  ).sort((a, b) => a - b);
+  return { ...availability, times: updatedTimes };
 }
