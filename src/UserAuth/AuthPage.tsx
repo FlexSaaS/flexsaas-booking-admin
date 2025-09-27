@@ -12,6 +12,7 @@ import { EmailJsService } from "../services/EmailJSService";
 const emailService: IEmailService = new EmailJsService();
 
 function AuthPage() {
+  const [businessName, setBusinessName] = useState(""); 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRegister, setIsRegister] = useState(false);
@@ -69,6 +70,15 @@ function AuthPage() {
     <Container>
       <Form onSubmit={handleSubmit}>
         <Title>{isRegister ? "Register" : "Login"}</Title>
+        {isRegister && (
+          <Input
+            type="text"
+            placeholder="Business Name"
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            required
+          />
+        )}
         <Input
           type="email"
           placeholder="Email"
