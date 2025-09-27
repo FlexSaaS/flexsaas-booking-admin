@@ -1,3 +1,5 @@
+
+
 // Represents a single time slot in minutes from midnight (e.g., 0, 30, 60, ...)
 export type TimeSlot = number;
 
@@ -7,6 +9,8 @@ export interface AvailabilityType {
   times: TimeSlot[]; // Time slots within the day
   staffCount: number;
 }
+
+
 
 // Represents a client appointment
 export interface Appointment {
