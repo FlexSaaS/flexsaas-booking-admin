@@ -1,4 +1,5 @@
 
+
 // Represents a single time slot in minutes from midnight (e.g., 0, 30, 60, ...)
 export type TimeSlot = number;
 
