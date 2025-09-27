@@ -31,6 +31,7 @@ function AuthPage() {
         );
 
         await setDoc(doc(db, "users", userCredential.user.uid), {
+          businessName,
           email,
           approved: false,
           requestedAt: serverTimestamp(),
