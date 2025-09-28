@@ -26,7 +26,7 @@ import { SuccessModal } from "./Modal/SuccesModal";
  * - Blocking unapproved users from accessing the dashboard
  */
 function App() {
-  const { user, approved, loading } = useAuth();
+  const { user, approved, loading, businessName } = useAuth();
 
   // Show loading state while checking auth and approval
   if (loading) return <p>Loading...</p>;
@@ -39,11 +39,18 @@ function App() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availability, setAvailability] = useState<AvailabilityType[]>([]);
   const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
-  const [savedAppointment, setSavedAppointment] = useState<Appointment | null>(null);
-
+  const [savedAppointment, setSavedAppointment] = useState<Appointment | null>(
+    null
+  );
 
   const dataAccess = new FirestoreDataAccess();
   const AvailabilityId = new Date().getFullYear().toString();
+
+  useEffect(() => {
+    document.title = businessName
+      ? `${businessName}'s Calendar`
+      : "FlexSaaS's Calendar";
+  }, [businessName]);
 
   // Load appointments and availability from Firestore on component mount
   useEffect(() => {
@@ -122,7 +129,11 @@ function App() {
   /**
    * Handle selecting a time slot for an appointment
    */
-  const handleTimeSelected = async (time: string, date: Date, client:Client): Promise<void> => {
+  const handleTimeSelected = async (
+    time: string,
+    date: Date,
+    client: Client
+  ): Promise<void> => {
     const durationMinutes = 60;
 
     // Parse time string into hours and minutes
@@ -141,7 +152,9 @@ function App() {
     start.setHours(hour, minute, 0, 0);
 
     // Check availability for the selected date
-    const dayAvailability = availability.find((a) => a.date.toDateString() === date.toDateString());
+    const dayAvailability = availability.find(
+      (a) => a.date.toDateString() === date.toDateString()
+    );
 
     if (!dayAvailability) return alert("No availability for this date");
 
@@ -149,12 +162,17 @@ function App() {
     const startIndex = dayAvailability.times.indexOf(startMinutes);
     if (startIndex === -1) return alert("Selected start time is not available");
 
-    const contiguousSlots = dayAvailability.times.slice(startIndex, startIndex + slotsNeeded);
-    if (contiguousSlots.length < slotsNeeded) return alert("Not enough available slots");
+    const contiguousSlots = dayAvailability.times.slice(
+      startIndex,
+      startIndex + slotsNeeded
+    );
+    if (contiguousSlots.length < slotsNeeded)
+      return alert("Not enough available slots");
 
     // Ensure slots are contiguous
     for (let i = 1; i < contiguousSlots.length; i++) {
-      if (contiguousSlots[i] !== contiguousSlots[i - 1] + 30) return alert("Slots are not contiguous");
+      if (contiguousSlots[i] !== contiguousSlots[i - 1] + 30)
+        return alert("Slots are not contiguous");
     }
 
     // Placeholder client info and service
@@ -174,7 +192,9 @@ function App() {
       prev
         .map((a) => {
           if (a.date.toDateString() === date.toDateString()) {
-            const newTimes = a.times.filter((t) => !contiguousSlots.includes(t));
+            const newTimes = a.times.filter(
+              (t) => !contiguousSlots.includes(t)
+            );
             const newStaffCount = Math.max(a.staffCount - 1, 0);
             return { ...a, times: newTimes, staffCount: newStaffCount };
           }
@@ -200,10 +220,9 @@ function App() {
       );
       console.log("Appointment and availability saved");
 
-          // Show success modal
-    setSavedAppointment(appointment);
-    setShowSuccessModal(true);
-
+      // Show success modal
+      setSavedAppointment(appointment);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Failed to save appointment or availability:", error);
     }
@@ -212,18 +231,18 @@ function App() {
   /**
    * Delete an appointment by ID
    */
-    /**
+  /**
    * Delete an appointment by ID
    */
   const handleDeleteEvent = async (eventId: string) => {
     try {
       // Find the appointment to delete
-      const appointmentToDelete = appointments.find(a => a.id === eventId);
+      const appointmentToDelete = appointments.find((a) => a.id === eventId);
       if (!appointmentToDelete) return;
 
       // Update availability: add slots back for the correct date
-      setAvailability(prev =>
-        prev.map(a =>
+      setAvailability((prev) =>
+        prev.map((a) =>
           a.date.toDateString() === appointmentToDelete.date.toDateString()
             ? addSlotsBackToAvailability(a, appointmentToDelete.time)
             : a
@@ -236,7 +255,7 @@ function App() {
       // Optionally, update availability in Firestore as well
       await dataAccess.setAvailability(
         AvailabilityId,
-        availability.map(a =>
+        availability.map((a) =>
           a.date.toDateString() === appointmentToDelete.date.toDateString()
             ? addSlotsBackToAvailability(a, appointmentToDelete.time)
             : a
@@ -271,11 +290,11 @@ function App() {
           onDeleteEvent={handleDeleteEvent}
         />
         {showSuccessModal && savedAppointment && (
-        <SuccessModal
-          appointment={savedAppointment}
-          onClose={() => setShowSuccessModal(false)}
-        />
-      )}
+          <SuccessModal
+            appointment={savedAppointment}
+            onClose={() => setShowSuccessModal(false)}
+          />
+        )}
       </Wrapper>
     </ThemeProvider>
   );
