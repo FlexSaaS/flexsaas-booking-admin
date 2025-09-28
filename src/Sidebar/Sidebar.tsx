@@ -20,7 +20,15 @@ type SidebarProps = {
   setDarkMode: (darkMode: boolean) => void;
 };
 
-function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSelected, availability, darkMode, setDarkMode }: SidebarProps) {
+function Sidebar({
+  selectedDate,
+  setSelectedDate,
+  onSaveAvailability,
+  onTimeSelected,
+  availability,
+  darkMode,
+  setDarkMode,
+}: SidebarProps) {
   const [showAvailModal, setShowAvailModal] = useState(false);
   const [showAppointment, setShowAppointment] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
@@ -29,10 +37,10 @@ function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSele
     email: "",
     phone: "",
     service: "",
-    notes:""
+    notes: "",
   });
 
-  const { logout } = useAuth();
+  const { businessName, logout } = useAuth();
 
   const handleBookAppointmentClick = () => {
     setShowClientForm(true);
@@ -51,13 +59,19 @@ function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSele
 
   const handleClientFormClose = () => {
     setShowClientForm(false);
-    setClientDetails({ name: "", email: "", phone: "", service:"" });
+    setClientDetails({ name: "", email: "", phone: "", service: "" });
   };
 
   const handleAppointmentClose = () => {
     setShowAppointment(false);
     // Reset client details when appointment modal closes
-    setClientDetails({ name: "", email: "", phone: "", service:"", notes:"" });
+    setClientDetails({
+      name: "",
+      email: "",
+      phone: "",
+      service: "",
+      notes: "",
+    });
   };
 
   const handleTimeSelected = (time: string, date: Date) => {
@@ -69,99 +83,127 @@ function Sidebar({ selectedDate, setSelectedDate, onSaveAvailability, onTimeSele
       <div>
         <TopSection>
           <FontAwesomeIcon icon={faCalendar} />
-          <span>Calendar</span>
+          <span>
+            {businessName ? `${businessName}'s Calendar` : "Calendar"}
+          </span>
         </TopSection>
 
-        <SmallCalendar selectedDate={selectedDate} onSelectDate={(date) => setSelectedDate(date)} />
-
-        <Button onClick={() => setShowAvailModal(true)}>Set Availability</Button>
-
-        <Button onClick={handleBookAppointmentClick}>Book Appointment</Button>
-
-        <Button onClick={logout}>Log Out</Button>
-        <ThemeWrapper>
-          <ThemeSwitch checked={!darkMode} onChange={() => setDarkMode(!darkMode)} />
-        </ThemeWrapper>
-
-        {/* Client Details Form Modal */}
-        {showClientForm && (
-            <ClientFormModal
-            clientDetails={clientDetails}
-            setClientDetails={setClientDetails}
-            onClose={handleClientFormClose}
-            onSubmit={handleClientFormSubmit}
+        <Section>
+          <SmallCalendar
+            selectedDate={selectedDate}
+            onSelectDate={(date) => setSelectedDate(date)}
           />
-        )}
 
-        {/* Appointment Time Selection Modal */}
-        {showAppointment && <Appointment onClose={handleAppointmentClose} availableTimes={availability} onTimeSelected={handleTimeSelected} />}
-
-        {showAvailModal && <AvailabilityModal onClose={() => setShowAvailModal(false)} onSave={onSaveAvailability} />}
+          <Button onClick={() => setShowAvailModal(true)}>
+            Set Availability
+          </Button>
+          <Button onClick={handleBookAppointmentClick}>Book Appointment</Button>
+          <DangerButton onClick={logout}>Log Out</DangerButton>
+        </Section>
       </div>
+
+      <ThemeWrapper>
+        <ThemeSwitch
+          checked={!darkMode}
+          onChange={() => setDarkMode(!darkMode)}
+        />
+      </ThemeWrapper>
+
+      {/* Client Details Form Modal */}
+      {showClientForm && (
+        <ClientFormModal
+          clientDetails={clientDetails}
+          setClientDetails={setClientDetails}
+          onClose={handleClientFormClose}
+          onSubmit={handleClientFormSubmit}
+        />
+      )}
+
+      {/* Appointment Time Selection Modal */}
+      {showAppointment && (
+        <Appointment
+          onClose={handleAppointmentClose}
+          availableTimes={availability}
+          onTimeSelected={handleTimeSelected}
+        />
+      )}
+
+      {showAvailModal && (
+        <AvailabilityModal
+          onClose={() => setShowAvailModal(false)}
+          onSave={onSaveAvailability}
+        />
+      )}
     </SidebarContainer>
   );
 }
 
 export default Sidebar;
 
-// Styled components
 const SidebarContainer = styled.div`
   width: 280px;
-  background-color: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.25rem;
   box-shadow: inset -1px 0 0 ${({ theme }) => theme.border};
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  justify-content: space-between;
 `;
 
 const TopSection = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 600;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: ${({ theme }) => theme.primary};
   user-select: none;
   margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid ${({ theme }) => theme.border};
 `;
 
-const ThemeWrapper = styled.div`
+const Section = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-top: 1.5rem;
+`;
+
+const ThemeWrapper = styled.div`
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid ${({ theme }) => theme.border};
 `;
 
 const Button = styled.button`
-  margin-top: 1.5rem;
-  padding: 0.6rem 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   background: ${({ theme }) => theme.secondary};
   color: ${({ theme }) => theme.primary};
-  border: 1px solid ${({ theme }) => theme.border};
-  border-radius: 8px;
+  border: none;
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 1px 2px ${({ theme }) => theme.secondary};
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background-color: ${({ theme }) => theme.background};
-    box-shadow: 0 2px 6px ${({ theme }) => theme.primary};
-  }
-
-  &:focus-visible {
-    outline: 3px solid ${({ theme }) => theme.primary};
-    outline-offset: 2px;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
 
   &:active {
-    background-color: ${({ theme }) => theme.background};
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 `;
 
+const DangerButton = styled(Button)`
+  background: #e63947b0;
+  color: #fff;
 
-
-
+  &:hover {
+    background: #d62828;
+  }
+`;
