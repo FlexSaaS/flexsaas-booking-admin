@@ -1,5 +1,5 @@
 import { useState } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendar } from "@fortawesome/free-solid-svg-icons";
 import SmallCalendar from "./Components/SmallCalendar";
@@ -140,6 +140,17 @@ function Sidebar({
 
 export default Sidebar;
 
+const slideInLeft = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+`;
+
 const SidebarContainer = styled.div`
   width: 280px;
   color: ${({ theme }) => theme.text};
@@ -148,6 +159,7 @@ const SidebarContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  animation: ${slideInLeft} 0.5s ease-out;
 `;
 
 const TopSection = styled.div`
