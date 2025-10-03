@@ -17,6 +17,7 @@ import { generateTimesAsNumbers, getAllDatesInYear } from "./utils";
 import { useAuth } from "./UserAuth/AuthProvider";
 import AuthPage from "./UserAuth/AuthPage";
 import { SuccessModal } from "./Modal/SuccesModal";
+import AdminDashboard from "./UserAuth/AdminDashboard";
 
 /**
  * Main App component responsible for:
@@ -26,12 +27,13 @@ import { SuccessModal } from "./Modal/SuccesModal";
  * - Blocking unapproved users from accessing the dashboard
  */
 function App() {
-  const { user, approved, loading } = useAuth();
+  const { user, approved, loading, role} = useAuth();
 
   // Show loading state while checking auth and approval
   if (loading) return <p>Loading...</p>;
   // Show AuthPage if not logged in or not approved
   if (!user || !approved) return <AuthPage />;
+  if (role === "admin") return <AdminDashboard />;
 
   // UI and data states
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
