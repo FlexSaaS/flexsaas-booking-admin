@@ -53,6 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setApproved(false);
           setBusinessName(null);
           setRole(null);
+        } else {
+          setApproved(false);
+          setBusinessName(null);
         }
       } catch (err) {
         console.error("Failed to fetch user data:", err);
@@ -80,6 +83,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 <AuthContext.Provider
       value={{ user, approved, businessName, role, loading, logout }}
 >
+    <AuthContext.Provider
+      value={{ user, approved, businessName, loading, logout }}
+    >
       {children}
 </AuthContext.Provider>
   );

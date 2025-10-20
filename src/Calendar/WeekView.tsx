@@ -5,9 +5,9 @@ import TimeSlotsGrid from "./Components/TimeSlotsGrid";
 import CurrentTimeLine from "./Layers/CurrentTimeLine";
 import EventsLayer from "./Layers/AppointmentLayer";
 import AvailabilityLayer from "./Layers/AvailabilityLayer";
-import styled from "styled-components";
 import { useRef, useEffect, useState, useMemo } from "react";
 import type { Appointment, AvailabilityType } from "../types";
+import styled, { keyframes } from "styled-components";
 
 type WeekViewProps = {
   selectedDate: Date;
@@ -151,6 +151,17 @@ export default WeekView;
 
 /* Styled Components */
 
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
 const Container = styled.div`
   flex: 1;
   display: flex;
@@ -158,6 +169,7 @@ const Container = styled.div`
   overflow: auto;
   background-color: ${({ theme }) => theme.background};
   color: ${({ theme }) => theme.text};
+  animation: ${fadeIn} 0.5s ease-in-out;
 `;
 
 const WeekContainer = styled.div`
