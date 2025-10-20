@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../services/FirebaseConfig";
+import { auth, db } from "../services/FirebaseConfig";
 import {
   collection,
   getDocs,
@@ -10,6 +10,7 @@ import {
 import styled from "styled-components";
 import type { IEmailService } from "../types";
 import { EmailJsService } from "../services/EmailJSService";
+import { signOut } from "firebase/auth";
 
 type PendingUser = {
   id: string; // UID
@@ -67,9 +68,17 @@ function AdminDashboard() {
     }
   };
 
-  return (
-    <Container>
-      <Title>Pending Users</Title>
+const handleLogout = async () => {
+    await signOut(auth);
+    window.location.reload(); // Optional: force refresh to reset state
+  };
+
+  return ( 
+    <Container> 
+      <Header>
+        <Title>Pending Users</Title>
+        <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+      </Header>
       {users.length === 0 ? (
         <Message>No pending users</Message>
       ) : (
@@ -163,5 +172,26 @@ const RejectButton = styled(ActionButton)`
 
   &:hover {
     background-color: #d32f2f;
+  }
+`;
+
+const Header = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const LogoutButton = styled.button`
+  padding: 6px 16px;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #388e3c;
   }
 `;
