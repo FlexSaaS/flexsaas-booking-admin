@@ -27,7 +27,7 @@ import AdminDashboard from "./UserAuth/AdminDashboard";
  * - Blocking unapproved users from accessing the dashboard
  */
 function App() {
-  const { user, approved, loading, role} = useAuth();
+  const { user, approved, loading, businessName, role } = useAuth();
 
   // Show loading state while checking auth and approval
   if (loading) return <p>Loading...</p>;
@@ -47,6 +47,8 @@ function App() {
 
   const dataAccess = new FirestoreDataAccess();
   const AvailabilityId = new Date().getFullYear().toString();
+
+  // Update document title based on business name
 
   useEffect(() => {
     document.title = businessName
