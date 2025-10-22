@@ -27,7 +27,7 @@ import AdminDashboard from "./UserAuth/AdminDashboard";
  * - Blocking unapproved users from accessing the dashboard
  */
 function App() {
-  const { user, approved, loading, role} = useAuth();
+  const { user, approved, loading, businessName, role } = useAuth();
 
   // Show loading state while checking auth and approval
   if (loading) return <p>Loading...</p>;
@@ -48,9 +48,7 @@ function App() {
   const dataAccess = new FirestoreDataAccess();
   const AvailabilityId = new Date().getFullYear().toString();
 
-  // Business name can be provided via the environment variable REACT_APP_BUSINESS_NAME
-  // Fallback to null so the title logic uses the default name.
-  const businessName = process.env.REACT_APP_BUSINESS_NAME ?? null;
+  // Update document title based on business name
 
   useEffect(() => {
     document.title = businessName
